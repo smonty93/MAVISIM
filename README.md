@@ -1,5 +1,9 @@
-# MAVISIM1.0
+# MAVISIM
 Image simulating tool for the next generation ESO instrument MAVIS. 
+
+## Versions
+1.0 - Fourier PSF
+1.1 - EtE PSF, faster
 
 ## Current Capabilities
 1. Able to simulate full stellar field (eg. Milky Way Globular Cluster) from an input physical catalogue
