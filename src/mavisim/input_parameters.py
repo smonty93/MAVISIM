@@ -21,7 +21,7 @@ psf_sampling = 0.0075 # Upsampling the PSF to avoid ringing, rebinning happens i
 
 # Gaussian Point Source Info
 vib_term = 0.48 #0.48 pixels, FWHM = 8.225 mas extra vibration, accounting for the 10mas min FWHM
-cd_term = 0.62 #0.4 pixels, FWHM = 7.05 pixels to account for charge diffusion, base jitter in the case of a static jitter kernal
+cd_term = 0.4 #0.4 pixels, FWHM = 7.05 pixels to account for charge diffusion, base jitter in the case of a static jitter kernal
 gauss_width = 34 # pixels, 11 x 11 array to store gaussian with central pixel = xcog, ycog
 gauss_wing = 17 # pixels, size of the wings of the gaussian (centred at xcog, ycog) extending to gauss_width total
 gauss_offset = -0.5 # pixels, offset to make sure the rebinning maintains a centred PSF
