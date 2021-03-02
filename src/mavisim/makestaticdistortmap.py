@@ -26,7 +26,7 @@ __author__ = "Stephanie Monty"
 import numpy as np
 
 ## Project Specific
-import mavissimim.input_parameters as input_par
+import mavisim.input_parameters as input_par
 
 ## Scipy
 from scipy import interpolate

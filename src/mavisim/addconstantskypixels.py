@@ -25,7 +25,7 @@ import numpy as np
 from astropy import units as u
 
 ## Project Specific
-import mavissimim.input_parameters as input_par
+import mavisim.input_parameters as input_par
 
 
 def add_constant_sky_pixel(exp_time):
