@@ -296,7 +296,7 @@ class Source:
 		c, s = np.sin(theta), np.cos(theta)
 		R = np.matrix([[c, -s], [s, c]])
 		RT = np.matrix([[c, s], [-s, c]])
-		S = np.matrix([[semi_major**2, 0], [0, semi_minor**2]])
+		S = np.matrix([[semi_major_arcsec**2, 0], [0, semi_minor_arcsec**2]])
 
 		# Generate the covariance matrix following a rotation
 		# See https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
