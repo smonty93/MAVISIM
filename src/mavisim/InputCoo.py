@@ -39,7 +39,7 @@ from astropy.table import Table, Column
 
 # Project-specific
 sys.path.append('../src')
-import mavissimim.input_parameters as input_par
+import mavisim.input_parameters as input_par
 
 class InputCoo:
 
@@ -68,11 +68,11 @@ class InputCoo:
 
 		# Convert the position to pixels (remove the knowledge of the static distortion)
 		x_pos = np.array(np.around(((self.source_table["X"]/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-		true_x = x_pos + self.source_table["X_Dist"] - self.source_table["Static_Dist"][:, 0] + self.source_table["X_PM"] + 1
+		true_x = x_pos + self.source_table["X_Dist"] - self.source_table["Stat_Dist"][:, 0] + self.source_table["X_PM"] + 1
 
 
 		y_pos = np.array(np.around(((self.source_table["Y"]/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-		true_y = y_pos + self.source_table["Y_Dist"] - self.source_table["Static_Dist"][:, 1] + self.source_table["Y_PM"] + 1
+		true_y = y_pos + self.source_table["Y_Dist"] - self.source_table["Stat_Dist"][:, 1] + self.source_table["Y_PM"] + 1
 
 		# Create the final table, swap the coordinates for the CCD convention
 		input_coo = Table(data = ([self.source_table["Star"]]))
@@ -81,9 +81,9 @@ class InputCoo:
 		input_coo.add_column(self.source_table["Dec"])
 		input_coo.add_column(Column(true_x), name="CCD_Mapped_X")
 		input_coo.add_column(self.source_table["X_PM"], name="CCD_Mapped_PM_X")
-		input_coo.add_column(self.source_table["Static_Dist"][:, 0], name="X Static Dist")
+		input_coo.add_column(self.source_table["Stat_Dist"][:, 0], name="X Static Dist")
 		input_coo.add_column(Column(true_y), name="CCD_Mapped_Y")
 		input_coo.add_column(self.source_table["Y_PM"], name="CCD_Mapped_PM_Y")
-		input_coo.add_column(self.source_table["Static_Dist"][:, 1], name="Y Static Dist")
+		input_coo.add_column(self.source_table["Stat_Dist"][:, 1], name="Y Static Dist")
 
 		return (input_coo)

@@ -20,6 +20,7 @@
 #			iii)         X/Y = Distance from the centre of the field (in arcseconds)
 #			iv)    X_PM/Y_PM = Proper motion of the star (mas)
 #			v) X_Dist/Y_Dist = Sub-pixel shifts due to a) the star falling at at a non-integer pixel position, b) static distortion present
+#			vi)    Stat_Dist = Static distortion applied [X,Y]
 #			vi)    Gauss_Src = Matrix rep. of the MV Gaussian 
 #
 #names = ('Star', 'Flux', 'RA', 'Dec', 'X', 
@@ -124,10 +125,10 @@ class Source:
 		# Hardcode this once... and then never again!
 		source_table = Table(data = ([star_row[0]], [star_row[1]], [star_row[2]], [star_row[3]], [star_row[4]],
 									[star_row[5]], [star_row[6]], [star_row[7]], [star_row[8]], [star_row[9]],
-									[star_row[10]]), 
+									[star_row[10]], [star_row[11]]), 
 							names=('Star', 'Flux', 'RA', 'Dec', 'X', 
 									'X_PM', 'X_Dist', 'Y', 'Y_PM', 'Y_Dist', 
-									'Gauss_Info'),
+									'Gauss_Info', 'Stat_Dist'),
 							meta={"exp_time": self.exp_time})
 
 		source_table["Flux"].unit   = "photons"
@@ -137,6 +138,7 @@ class Source:
 		source_table["Y"].unit      = "arcseconds"
 		source_table["Y_PM"].unit   = "pixels/year"
 		source_table["Y_Dist"].unit = "pixels"
+		source_table["Stat_Dist"].unit = "pixels"
 
 
 		# Iterate for every star in the input catalogue, create a Gaussian for each point source.
@@ -164,7 +166,7 @@ class Source:
 		# Print information on the static distortion applied
 
 		if self.static_dist == True:
-			ave_stat = np.average(np.sqrt(source_table["X_Dist"]**2 + source_table["Y_Dist"]**2))
+			ave_stat = np.average(np.sqrt(source_table["Stat_Dist"][0]**2 + source_table["Stat_Dist"][1]**2))
 
 			print ("Average X static distortion applied (mas) = %s" % str(ave_stat * (1e3 * input_par.ccd_sampling)))
 
@@ -186,7 +188,7 @@ class Source:
 		"""
 
 		# Save the sub-pixel shift that comes from converting 15.1 degrees to pixels, keep track of this to shift later
-		(x_pos_dist, y_pos_dist) = self.find_shift(star_info)
+		(x_pos_dist, y_pos_dist, stat_dist) = self.find_shift(star_info)
 		
 		# PM in pixels
 		pm_x = (star_info["PM_X"])/input_par.ccd_sampling
@@ -209,7 +211,7 @@ class Source:
 		# Swap the x and y for the CCD convention
 		row_info = [star_info["Star"], total_flux, star_info["RA"], star_info["Dec"],
 					star_info["X"], pm_x, x_pos_dist, star_info["Y"], pm_y, y_pos_dist,
-					gauss_info]
+					gauss_info, stat_dist]
 
 		return row_info
 
@@ -252,14 +254,14 @@ class Source:
 			final_x_dist = x_stat_dist + delta_xpix
 			final_y_dist = y_stat_dist + delta_ypix
 
-			return (final_x_dist, final_y_dist, np.asarray([x_stat_dist, y_stat_dist]))
+			return (final_x_dist, final_y_dist, np.array([x_stat_dist, y_stat_dist]))
 
 		else:
 			# Sub-pixel shift is solely associated with the conversion from arcseconds to pixels
 			final_x_dist = delta_xpix
 			final_y_dist = delta_ypix
 
-			return (final_x_dist, final_y_dist)
+			return (final_x_dist, final_y_dist, np.array([0, 0]))
 
 
 	def find_covmat(self):
