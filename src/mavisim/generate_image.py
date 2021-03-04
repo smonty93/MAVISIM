@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from astropy.io import fits
+from copy import deepcopy
 
 class PSF:
     """PSF object class"""
@@ -10,7 +11,7 @@ class PSF:
         self.xpos     = fits_ext.header["YPOS"]/debug_scale_factor
         self.ypos     = fits_ext.header["XPOS"]/debug_scale_factor
         self.Lambda   = fits_ext.header["LAMBDA"]
-        print(self.xpos)
+        print(f"x: {self.xpos:7.3f}\", y: {self.ypos:7.3f}\"",end="\r")
     
 class ImageGenerator:
     def __init__( self, source_list, psfs_file, image_extent, *,
@@ -19,7 +20,7 @@ class ImageGenerator:
         self.dtype=dtype
 
         # Parse source info:
-        self.source = source_list["Gauss_Info"]
+        self.source = deepcopy(source_list["Gauss_Info"])
         for ni in range(len(self.source)):
             self.source[ni][1] /= debug_scale_factor
         for ni in range(len(self.source)):
@@ -46,11 +47,12 @@ class ImageGenerator:
         self.fourier_image_dim = self.final_image_dim + np.array(psfs_fits[1].data.shape)
         
         # Create PSF objects and do their FFTs
-        print("Doing PSF FFTs")
+        print("Doing PSF FFTs:")
         self.psfs = []
         for psf in psfs_fits[1:]:
             self.psfs.append(PSF(psf, self.fourier_image_dim, debug_scale_factor=debug_scale_factor))
         psfs_fits.close()
+        print("Done.                          ")
         
     def get_effective_psf_fft(self, star, psf_out):
         # Takes in a single star object (list of [flux, pos, cov])
@@ -68,7 +70,7 @@ class ImageGenerator:
             else:
                 continue
             psf_out += gamma*psf.fft_data
-            print(f"{psf.xpos:0.5f} {psf.ypos:0.5f} {gamma.real:0.4f}")
+            # print(f"{psf.xpos:0.5f} {psf.ypos:0.5f} {gamma.real:0.4f}")
         return psf_out
     
     def get_image(self):
@@ -88,8 +90,9 @@ class ImageGenerator:
                 )
         fft_pos = np.c_[uu.flatten(),vv.flatten()].T
         esp1,esp2 = self.optimize_star_kernel(self.source[0], self.dtype(fft_pos), nx, T)
+        print("Building image from sources:")
         for star in self.source:
-            print(star)
+            print(f"flux: {star[0].real:5.3e}, x: {star[1][0].real:7.3f}\", y: {star[1][1].real:7.3f}\"", end="\r")
             t1 = time.time()
             storage_array *= 0.0
             t2 = time.time()
@@ -105,7 +108,7 @@ class ImageGenerator:
             time_psf      += t3-t2
             time_star     += t4-t3
             time_product  += t5-t4
-        
+        print("Done.                                                 ")
         print(f"time clearing : {time_clearing:f}")
         print(f"time star     : {time_star:f}")
         print(f"time psf      : {time_psf:f}")
