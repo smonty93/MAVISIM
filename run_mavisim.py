@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt; plt.ion()
 import sys
 import os
+import time
 
 # Astropy
 from astropy.io import fits, ascii
@@ -35,6 +36,6 @@ exp_time = 3600
 source = Source(ngc3201, exp_time, tt_amp_fac=1.0, static_dist=False, stat_amp=1.0).main()
 #self, mavis_src, exp_time, static_dist, tt_amp_fac, stat_amp
 
-image_gen = ImageGenerator(source[:100], "src/e2epsfs/e2e_psfs.fits", 
-        [-15,15,-15,15], debug_scale_factor=16)
+#image_gen = ImageGenerator(source[:100], "src/e2epsfs/e2e_psfs.fits", 
+#        [-15,15,-15,15], debug_scale_factor=16)
 
