@@ -9,7 +9,7 @@ import time
 from astropy.io import fits, ascii
 from astropy.table import Table
 
-from src.mavisim.generate_image import ImageGenerator
+from src.mavisim.generate_image import TileGenerator
 
 # Project-specific/
 #sys.path.append('/src')
