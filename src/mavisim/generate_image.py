@@ -65,9 +65,7 @@ class TileGenerator:
             # print(f"{psf.xpos:0.5f} {psf.ypos:0.5f} {gamma.real:0.4f}")
         return psf_out
     
-    def get_tile(self,index,output_array=None):
-        if output_array is None:
-            output_array = np.zeros(self.fourier_tile_dim,dtype=self.dtype)
+    def get_tile(self,index):
         if self.init == True:
             self.nx = self.fourier_tile_dim[0] # square image only
             self.T  = self.dtype(self.gauss_width_as + self.psf_width_as)
@@ -80,17 +78,19 @@ class TileGenerator:
             self.esp1,self.esp2 = self.optimize_star_kernel(self.source[0], self.fft_pos, self.nx, self.T)
             self.init = False
         star = self.source[index]
-        output_array *= 0
-        self.get_effective_psf_fft(star, output_array)
-        # star_pos = star[1] % self.pixsize
-        # star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + self.pixsize
-        offset = star[1] % self.pixsize
+        psf_array = np.zeros(self.fourier_tile_dim,dtype=self.dtype)
+        #star[1] *= 0.0
+        #star[1] += 0.49*self.pixsize
+        #print(f"Forcing position to {star[1]}\"")
+        self.get_effective_psf_fft(star, psf_array)
+        offset = (((((star[1] % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
         star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
-        output_array *= star[0] * self.get_star_kernel_fft(star[2], star_pos, self.fft_pos, self.nx, self.T, self.esp1, self.esp2)
+        bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
+        psf_array *= star[0] * self.get_star_kernel_fft(star[2], star_pos, self.fft_pos, self.nx, self.T, self.esp1, self.esp2)
         return (np.fft.fftshift(
             np.fft.ifft2(
-                np.fft.fftshift(output_array)
-            ).astype(self.dtype))).real[:self.psf_width_pix,:self.psf_width_pix],offset
+                np.fft.fftshift(psf_array)
+            ).astype(self.dtype))).real[:self.psf_width_pix,:self.psf_width_pix],bottom_left_corner
     
     def get_star_kernel_fft(self, cov, mu, fft_pos, nx, T, esp1, esp2):
         offset = 2*np.pi*1j*mu.flatten()
