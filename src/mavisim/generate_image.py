@@ -189,7 +189,7 @@ class ImageGenerator:
         print("Totals:")
         print(" | ".join([f"{x:7s}" for x in time_profile])+" || TOTAL")
         total = sum(time_profile.values())
-        print(" | ".join([f"{time_profile[x]:7.5f}" for x in time_profile]) + f" || {total:0.2f}")
+        print(" | ".join([f"{time_profile[x]:7.2f}" for x in time_profile]) + f" || {total:0.2f}")
         
     def get_rebinned_cropped(self,rebin_factor,cropped_width_as):
         xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
