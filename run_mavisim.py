@@ -5,6 +5,9 @@ import sys
 import os
 import time
 
+t_tot = 0
+t1 = time.time()
+
 # Astropy
 from astropy.io import fits, ascii
 from astropy.table import Table
@@ -38,6 +41,7 @@ source = Source(ngc3201, exp_time, tt_amp_fac=1.0, static_dist=False, stat_amp=1
 
 array_size = 12000
 pixsize = 3.75e-3
+cropped_width_as = 30
 
 # x-position of bottom-left-corner of each pixel:
 xx = np.arange(array_size)*pixsize
@@ -49,8 +53,8 @@ full_image = np.zeros([xx.shape[0],yy.shape[0]])
 tile_gen = TileGenerator(source, "src/e2epsfs/e2e_psfs.fits", 34)
 
 thresh = 1e-7
+t_tot += time.time() - t1
 t1 = time.time()
-t_tot = 0
 for ni in range(len(source)):
     tile = tile_gen.get_tile(ni)
     xstart = np.abs(xx-tile[1][0]).argmin()
@@ -62,16 +66,23 @@ for ni in range(len(source)):
     full_image[ystart:ystart+tile_gen.psf_width_pix,xstart:xstart+tile_gen.psf_width_pix] += tile[0]
     dt = time.time()-t1
     t_tot += dt
-    print(f"star: {ni:6d},  took: {dt:7.4f} sec,  eta {(len(source)-ni)*(t_tot/(ni+1)):7.1f} sec",end="\r")
+    print(f"star: {ni+1:6d},  took: {dt:7.4f} sec,  eta {(len(source)-ni)*dt:7.1f} sec",end="\r")
     t1 = time.time()
 print("\ndone")
-print(f"time: {t2-t1:f}")
-print(f"stars: {ni:d}")
+print(f"time:  {t_tot:0.2f} sec")
+print(f"stars: {ni+1:d}")
 
-cropped_image = full_image[np.abs(yy)<=30/2,:][:,np.abs(xx)<=30/2]
+
+xx_cropped_id = np.abs(xx)<=cropped_width_as/2
+xx_cropped = xx[xx_cropped_id]
+cropped_image = full_image[xx_cropped_id,:][:,xx_cropped_id]
+
 def rebin(arr, new_shape):
     shape = (new_shape[0], arr.shape[0] // new_shape[0],
              new_shape[1], arr.shape[1] // new_shape[1])
     return arr.reshape(shape).mean(-1).mean(1)
-rebinned_image = rebin(cropped_image,[4000,4000])
+
+rebinned_image = rebin(cropped_image,np.array(cropped_image.shape)//2)
+extent = cropped_width_as*np.array([-0.5,0.5,-0.5,0.5])
+plt.matshow(np.log(rebinned_image), extent=extent)
 
