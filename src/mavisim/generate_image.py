@@ -3,11 +3,19 @@ import pyfftw
 import time
 from astropy.io import fits
 from copy import deepcopy
+import torch
+from opt_einsum import contract
+
+device = 1
+fft = torch.fft
+
+def tensor(array):
+    return torch.tensor(array,device=1)
 
 class PSF:
     """PSF object class"""
-    def __init__(self, fits_ext, padto, *, dtype=np.complex128):
-        self.fft_data = (np.fft.rfft2(fits_ext.data,s=padto)).astype(dtype)
+    def __init__(self, fits_ext, padto, *, dtype=np.float64):
+        self.fft_data = fft.rfft2(torch.tensor(fits_ext.data.astype(dtype),device=device),s=padto.tolist())
         self.xpos     = fits_ext.header["YPOS"]
         self.ypos     = fits_ext.header["XPOS"]
         self.Lambda   = fits_ext.header["LAMBDA"]
@@ -59,7 +67,7 @@ class TileGenerator:
                 gamma = (
                             (1-np.abs(psf.xpos-s_pos[0])/self.psf_pitch) * \
                             (1-np.abs(psf.ypos-s_pos[1])/self.psf_pitch)
-                         ).astype(psf.fft_data.dtype)
+                         )
             else:
                 continue
             psf_out += gamma*psf.fft_data
@@ -70,10 +78,10 @@ class TileGenerator:
         t1 = time.time()
         if self.init == True:
             new_shape = [self.fourier_tile_dim[0],self.fourier_tile_dim[1]//2+1]
-            self.psf_array = np.zeros(new_shape,dtype=self.dtype)
+            self.psf_array = tensor(np.zeros(new_shape,dtype=self.dtype))
             self.nx = self.fourier_tile_dim[0] # square image only
-            self.T  = self.dtype(self.gauss_width_as + self.psf_width_as)
-            self.Ts = self.dtype(self.T/self.nx)
+            self.T  = (self.gauss_width_as + self.psf_width_as)
+            self.Ts = (self.T/self.nx)
             uu,vv = np.meshgrid(
                 np.linspace(0,1/self.Ts,self.nx+1,dtype=self.dtype)[:-1]-1/(2*self.Ts),
                 np.linspace(0,1/self.Ts,self.nx+1,dtype=self.dtype)[:-1]-1/(2*self.Ts)
@@ -81,14 +89,14 @@ class TileGenerator:
             uu = np.fft.fftshift(uu)
             vv = np.fft.fftshift(vv)
             #self.fft_pos = np.c_[uu.flatten(),vv.flatten()].T
-            self.fft_pos = np.c_[uu[:new_shape[0],:new_shape[1]].flatten(),
-                                 vv[:new_shape[0],:new_shape[1]].flatten()].T
-            self.optimize_star_kernel(self.source[0])
+            self.fft_pos = tensor(np.c_[uu[:new_shape[0],:new_shape[1]].flatten(),
+                                 vv[:new_shape[0],:new_shape[1]].flatten()].T)
+            # self.optimize_star_kernel(self.source[0])
             self.init = False
         t2 = time.time()
         star = self.source[index]
         if self.dtype==np.complex64:
-            star = [x.astype(np.float32) for x in star]
+            star = [tensor(x.astype(np.float32)) for x in star]
         self.psf_array *= 0.0
         t3 = time.time()
         self.get_effective_psf_fft(star, self.psf_array)
@@ -97,12 +105,13 @@ class TileGenerator:
         star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
         bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
         t5 = time.time()
+        star = [tensor(x) for x in star]
         self.psf_array *= self.get_star_kernel_fft(star[0], star[2], star_pos)
         t6 = time.time()
-        out = (np.fft.fftshift(
-            np.fft.irfft2(
+        out = fft.fftshift(
+            fft.irfft2(
                 (self.psf_array)
-            ).astype(self.dtype))).real[:self.psf_width_pix,:self.psf_width_pix]
+            ))[:self.psf_width_pix,:self.psf_width_pix]
         t7 = time.time()
 
         return out, bottom_left_corner, {
@@ -115,20 +124,28 @@ class TileGenerator:
         }
     
     def get_star_kernel_fft(self, flux, cov, mu):
-        offset = (2*np.pi*1j)*mu
-        gaussian_fft = (flux*(self.nx**2/self.T**2)*2*np.pi*np.sqrt(np.linalg.det(cov)))*np.exp(
-                (-2*(np.pi)**2)*np.einsum(
+        offset = tensor((2*np.pi*1j)*mu)
+        if 1==0:
+            gaussian_fft = (flux*(self.nx**2/self.T**2)*2*np.pi*np.sqrt(np.linalg.det(cov.cpu())))*torch.exp(
+                (-2*(np.pi)**2)*contract(
                     "ij,ii,ij->j",
                     self.fft_pos,
                     cov,
-                    self.fft_pos,
-                    optimize=self.esp1
-                ) - np.einsum(
+                    self.fft_pos
+                ) - contract(
                     "ij,i->j",
                     self.fft_pos,
-                    offset,
-                    optimize=self.esp2
+                    offset
                 )).reshape(self.psf_array.shape) 
+        else:
+            gaussian_fft = (flux*(self.nx**2/self.T**2)*2*np.pi*np.sqrt(np.linalg.det(cov.cpu())))*torch.exp(
+                (-2*(np.pi)**2*cov[0,0])*
+                    (self.fft_pos**2).sum(axis=0) - contract(
+                    "ij,i->j",
+                    self.fft_pos,
+                    offset
+                )).reshape(self.psf_array.shape) 
+
         # TODO brute force normalise. Was an error of about 0.2% last I checked.
         return gaussian_fft
     
@@ -165,7 +182,7 @@ class ImageGenerator:
         self.xx = np.arange(array_width_pix)*pixsize
         self.fov = self.xx[-1]-self.xx[0]
         self.xx -= (self.fov/2+self.pixsize/2)
-        self.full_image = np.zeros([self.xx.shape[0],self.xx.shape[0]])
+        self.full_image = tensor(np.zeros([self.xx.shape[0],self.xx.shape[0]]))
         self.tile_gen = TileGenerator(source_list, psfs_file, gauss_width_pix)
         
     def main(self):
@@ -195,7 +212,7 @@ class ImageGenerator:
         xx_cropped = self.xx[xx_cropped_id]
         cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
         rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//2)
-        return rebinned_im
+        return rebinned_im.cpu()
 
     def rebin(self, arr, new_shape):
         shape = (new_shape[0], arr.shape[0] // new_shape[0],
