@@ -116,7 +116,7 @@ class TileGenerator:
     
     def get_star_kernel_fft(self, flux, cov, mu):
         offset = (2*np.pi*1j)*mu
-        gaussian_fft = (flux*self.nx**2/self.T**2**np.pi*np.sqrt(np.linalg.det(cov)))*np.exp(
+        gaussian_fft = (flux*(self.nx**2/self.T**2)*2*np.pi*np.sqrt(np.linalg.det(cov)))*np.exp(
                 (-2*(np.pi)**2)*np.einsum(
                     "ij,ii,ij->j",
                     self.fft_pos,
