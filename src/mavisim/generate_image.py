@@ -97,7 +97,7 @@ class TileGenerator:
         star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
         bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
         t5 = time.time()
-        self.psf_array *= star[0] * self.get_star_kernel_fft(star[2], star_pos)
+        self.psf_array *= self.get_star_kernel_fft(star[0], star[2], star_pos)
         t6 = time.time()
         out = (np.fft.fftshift(
             np.fft.irfft2(
@@ -114,22 +114,21 @@ class TileGenerator:
             "fft":t7-t6,
         }
     
-    def get_star_kernel_fft(self, cov, mu):
-        offset = 2*np.pi*1j*mu.flatten()
-        gaussian_fft = 2*np.pi*np.sqrt(np.linalg.det(cov))*np.exp(
-                -2*(np.pi)**2*np.einsum(
+    def get_star_kernel_fft(self, flux, cov, mu):
+        offset = (2*np.pi*1j)*mu
+        gaussian_fft = (flux*self.nx**2/self.T**2**np.pi*np.sqrt(np.linalg.det(cov)))*np.exp(
+                (-2*(np.pi)**2)*np.einsum(
                     "ij,ii,ij->j",
                     self.fft_pos,
                     cov,
                     self.fft_pos,
                     optimize=self.esp1
-                ) + np.einsum(
+                ) - np.einsum(
                     "ij,i->j",
                     self.fft_pos,
-                    -offset,
+                    offset,
                     optimize=self.esp2
-                )).reshape(self.psf_array.shape)
-        gaussian_fft *= self.nx**2/self.T**2
+                )).reshape(self.psf_array.shape) 
         # TODO brute force normalise. Was an error of about 0.2% last I checked.
         return gaussian_fft
     
