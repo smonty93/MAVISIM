@@ -3,6 +3,7 @@ import pyfftw
 import time
 from astropy.io import fits
 from copy import deepcopy
+from math import fmod
 
 class PSF:
     """PSF object class"""
@@ -93,7 +94,7 @@ class TileGenerator:
         t3 = time.time()
         self.get_effective_psf_fft(star, self.psf_array)
         t4 = time.time()
-        offset = (((((star[1] % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
+        offset = (((star[1] % self.pixsize)/self.pixsize)-0.5)*self.pixsize
         star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
         bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
         t5 = time.time()
