@@ -5,7 +5,6 @@ from astropy.io import fits
 from copy import deepcopy
 import torch
 from opt_einsum import contract
-from math import fmod
 
 device = 1
 fft = torch.fft
@@ -102,7 +101,7 @@ class TileGenerator:
         t3 = time.time()
         self.get_effective_psf_fft(star, self.psf_array)
         t4 = time.time()
-        offset = (((star[1] % self.pixsize)/self.pixsize)-0.5)*self.pixsize
+        offset = (((((star[1] % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
         star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
         bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
         t5 = time.time()
