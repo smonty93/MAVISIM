@@ -211,7 +211,7 @@ class ImageGenerator:
         xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
         xx_cropped = self.xx[xx_cropped_id]
         cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
-        rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//2)
+        rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
         return rebinned_im.cpu()
 
     def rebin(self, arr, new_shape):
