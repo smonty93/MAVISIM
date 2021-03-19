@@ -21,9 +21,8 @@ __author__ = "Stephanie Monty"
 import numpy as np
 
 ## Project Specific
-import mavissimim.findclosestvalue
-from mavissimim.addconstantskypixels import add_constant_sky_pixel
-import mavissimim.input_parameters as input_par
+from mavisim.addconstantskypixels import add_constant_sky_pixel
+import mavisim.input_parameters as input_par
 
 
 
