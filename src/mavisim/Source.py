@@ -191,16 +191,16 @@ class Source:
 		(x_pos_dist, y_pos_dist, stat_dist) = self.find_shift(star_info)
 		
 		# PM in pixels
-		pm_x = (star_info["PM_X"])/input_par.ccd_sampling
-		pm_y = (star_info["PM_Y"])/input_par.ccd_sampling
+		pm_x = star_info["PM_X"]
+		pm_y = star_info["PM_Y"]
 		
 		# Multiply the input flux by the exposure time
 		total_flux = star_info["Flux"] * self.exp_time
 
 		# Create a column vector for the x,y coordinates of the centre of the Gauss
 		# All inputs are in arcseconds, convention is centre of FoV at (0, 0)
-		gauss_mux = star_info["X"] + ((input_par.gauss_offset+x_pos_dist+pm_x) * input_par.ccd_sampling)
-		gauss_muy = star_info["Y"] + ((input_par.gauss_offset+y_pos_dist+pm_y) * input_par.ccd_sampling)
+		gauss_mux = star_info["X"] + (x_pos_dist * input_par.ccd_sampling) + pm_x
+		gauss_muy = star_info["Y"] + (y_pos_dist * input_par.ccd_sampling) + pm_y
 
 		gauss_mu = np.r_[gauss_mux, gauss_muy]
 
