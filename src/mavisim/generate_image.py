@@ -201,3 +201,7 @@ class ImageGenerator:
         shape = (new_shape[0], arr.shape[0] // new_shape[0],
                  new_shape[1], arr.shape[1] // new_shape[1])
         return arr.reshape(shape).mean(-1).mean(1)
+
+    def getSourceList(self):
+        return self.tile_gen.source
+
