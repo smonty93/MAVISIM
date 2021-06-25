@@ -1,0 +1,7 @@
+ipython
+notebook
+numpy
+matplotlib
+astropy
+pyfftw
+scipy
