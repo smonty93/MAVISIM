@@ -1,0 +1,7 @@
+site_name: MAVISIM
+site_url: https://example.com/
+theme:
+  name: readthedocs
+
+markdown_extensions:
+  - admonition
