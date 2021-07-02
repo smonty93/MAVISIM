@@ -1,0 +1,16 @@
+site_name: MAVISIM
+site_url: https://example.com/
+repo_url: https://github.com/smonty93/MAVISIM/
+theme:
+  name: readthedocs
+nav:
+  - 'index.md'
+  - 'install.md'
+  - 'runningmavisimshort.md'
+  - 'runningmavisim.md'
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: True
+      separator: "_"
