@@ -1,7 +1,7 @@
 # MAVISIM 1.0
 Image simulating tool for the next generation ESO instrument MAVIS. 
 
-<b>Documentation can be found on <a href="https://mavisim.readthedocs.io/en/latest/" target="_blank">readthedocs</a></b>
+<b>Documentation can be found on <a href="https://mavisim.readthedocs.io/en/latest/" target="_blank"> readthedocs</a></b>
 
 ## Current Capabilities
 1. Able to simulate full stellar field (eg. Milky Way Globular Cluster) from an input physical catalogue
