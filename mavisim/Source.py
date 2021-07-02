@@ -41,7 +41,6 @@ import numpy as np
 # Astropy
 from astropy.table import Table
 
-import mavisim.input_parameters as input_par
 import mavisim.makestaticdistortmap as make_static_map
 import mavisim.maketiptiltmap as make_tt_map
 import mavisim.findweights as find_weights
@@ -51,6 +50,7 @@ class Source:
 
 	"""
 	Args:
+		input_par = input parameters either hardcoded or altered by the user
 		mavis_src = the source catalogue input to the program
 		exp_time = exposure time in seconds (to multiply with the flux)
 		static_dist = Boolean stating whether static distortion should be taken into account (and therefore added) to the image
@@ -64,7 +64,8 @@ class Source:
 
 	"""
 
-	def __init__(self, mavis_src, exp_time, static_dist=False, stat_amp=1.0, tt_var=False, user_tt = False, tt_amp=1.0):
+	def __init__(self, input_par, mavis_src, exp_time, static_dist=False, stat_amp=1.0, tt_var=False, user_tt = False, tt_amp=1.0):
+		self.input_par = input_par
 
 		self.mavis_src = mavis_src
 
@@ -81,7 +82,7 @@ class Source:
 		self.tt_amp = tt_amp
 
 		# Weight the seeing wings to ensure a smooth transition from the AO core to seeing wings
-		self.weight_func = find_weights.interpolate_weights(input_par.weight_grid)
+		self.weight_func = find_weights.interpolate_weights(self.input_par.weight_grid)
 
 		# Track the semi-major and semi-minor axes to get a sense of the scale of the TT distortion
 		self.track_smajor = []
@@ -90,14 +91,14 @@ class Source:
 		# Add static field distortion to the image?, If so, create the functions necessary to determine the distortion to add
 		if self.static_dist == True:
 
-			(self.dist_x_func_degmm, self.dist_y_func_degmm) = make_static_map.make_static_dist_map()
+			(self.dist_x_func_degmm, self.dist_y_func_degmm) = make_static_map.make_static_dist_map(self.input_par)
 
 		# Add a variable TT kernel? If so, create the functions nec. to find the kernel
 		# If not, it's assumed to be constant and is either the sum of the charge diffusion and vibration terms, 
 		# or a fixed value given by the user (tt_kernel)
 		if self.tt_var == True:
 
-			(self.semimajor_func, self.semiminor_func, self.theta_func) = make_tt_map.make_ttkernel_map()
+			(self.semimajor_func, self.semiminor_func, self.theta_func) = make_tt_map.make_ttkernel_map(self.input_par)
 
 
 	def main(self):
@@ -171,7 +172,7 @@ class Source:
 
 		# Print information on the static distortion applied
 		print (" ")
-		print ("Average X static distortion applied (mas) = %s" % str(np.average(np.absolute(source_table["Static_Dist"][:, 0])) * (1e3 * input_par.ccd_sampling)))
+		print ("Average X static distortion applied (mas) = %s" % str(np.average(np.absolute(source_table["Static_Dist"][:, 0])) * (1e3 * self.input_par.ccd_sampling)))
 		
 		return source_table
 
@@ -191,8 +192,8 @@ class Source:
 		(x_pos_dist, y_pos_dist, static_dist) = self.find_shift(star_info)
 		
 		# PM in pixels
-		pm_x = (star_info["PM_X"])/input_par.ccd_sampling
-		pm_y = (star_info["PM_Y"])/input_par.ccd_sampling
+		pm_x = (star_info["PM_X"])/self.input_par.ccd_sampling
+		pm_y = (star_info["PM_Y"])/self.input_par.ccd_sampling
 		
 		# Recover the weight to use to blend the seeing wings			
 		weight = self.weight_func(star_info["X"], star_info["Y"])
@@ -201,7 +202,7 @@ class Source:
 		total_flux = star_info["Flux"] * self.exp_time
 
 		# Create the Gaussian source, one to rebin the larger PSFs, one with the normal sampling for convolution with the seeing grid
-		gauss_src = self.find_gauss(total_flux, star_info, input_par.gauss_offset+x_pos_dist+pm_x, input_par.gauss_offset+y_pos_dist+pm_y)
+		gauss_src = self.find_gauss(total_flux, star_info, self.input_par.gauss_offset+x_pos_dist+pm_x, self.input_par.gauss_offset+y_pos_dist+pm_y)
 
 		# Return the formatted info to append as a row to the final astropy table
 		# Swap the x and y for the CCD convention
@@ -223,12 +224,12 @@ class Source:
 		"""
 
 		# Save the sub-pixel shift that comes from converting e.g. 15.1 degrees to pixels, pass this to the Gaussian later
-		x_mu_pix_true = (star_info["X"])/input_par.ccd_sampling
-		y_mu_pix_true = (star_info["Y"])/input_par.ccd_sampling
+		x_mu_pix_true = (star_info["X"])/self.input_par.ccd_sampling
+		y_mu_pix_true = (star_info["Y"])/self.input_par.ccd_sampling
 
 		# Nearest integer pixel
-		x_mu_pix = int(np.around(star_info["X"]/input_par.ccd_sampling, 0))
-		y_mu_pix = int(np.around(star_info["Y"]/input_par.ccd_sampling, 0))
+		x_mu_pix = int(np.around(star_info["X"]/self.input_par.ccd_sampling, 0))
+		y_mu_pix = int(np.around(star_info["Y"]/self.input_par.ccd_sampling, 0))
 
 		# Sub-pixel shift
 		delta_xpix = x_mu_pix_true - x_mu_pix
@@ -243,8 +244,8 @@ class Source:
 			y_deg = star_info["Y"]/3600.0
 
 			# Static distortion for the star given the location, converting from mm to pixels
-			x_stat_dist = (((self.dist_x_func_degmm(x_deg, y_deg) * input_par.plate_scale)/input_par.ccd_sampling)[0][0]) * self.stat_amp
-			y_stat_dist = (((self.dist_y_func_degmm(x_deg, y_deg) * input_par.plate_scale)/input_par.ccd_sampling)[0][0]) * self.stat_amp
+			x_stat_dist = (((self.dist_x_func_degmm(x_deg, y_deg) * self.input_par.plate_scale)/self.input_par.ccd_sampling)[0][0]) * self.stat_amp
+			y_stat_dist = (((self.dist_y_func_degmm(x_deg, y_deg) * self.input_par.plate_scale)/self.input_par.ccd_sampling)[0][0]) * self.stat_amp
 
 			# Sum the two sub-pixel terms to find the final distortion
 			final_x_dist = x_stat_dist + delta_xpix
@@ -275,17 +276,17 @@ class Source:
 		"""
 
 		# Dimensions of the desired Gaussian (we always create symmetric Gaussians)
-		M = input_par.gauss_width
+		M = self.input_par.gauss_width
 		N = M
 
 		# Create the array for which to store the Gaussian (governed by the desired size)
 		W = np.array([M, N])
 
 		# Centre point of the Gaussian
-		P0 = (input_par.gauss_width - 1)/2*np.array([1,1])
+		P0 = (self.input_par.gauss_width - 1)/2*np.array([1,1])
 
 		# Input to the Gaussian software
-		gauss_input = np.array([x_shift, y_shift, total_flux, input_par.cd_term])
+		gauss_input = np.array([x_shift, y_shift, total_flux, self.input_par.cd_term])
 		
 		# Spatially variable TT kernel
 		if self.tt_var == True:
@@ -298,26 +299,26 @@ class Source:
 		else:
 			# The case where the user wants a static TT kernel with fixed size
 			if self.user_tt == True:
-				kern_pix = (((input_par.tt_kernel/2.35)/1000.0)/input_par.ccd_sampling)  * self.tt_amp
+				kern_pix = (((self.input_par.tt_kernel/2.35)/1000.0)/self.input_par.ccd_sampling)  * self.tt_amp
 				cov_mat = np.matrix([[kern_pix**2, 0], [0, kern_pix**2]])
 
 				gauss_star = fill_pixels_tt(P0, M, N, W, star=gauss_input, cov=cov_mat)
 
-				self.track_smajor.append(kern_pix*input_par.ccd_sampling*1e3)
-				self.track_sminor.append(kern_pix*input_par.ccd_sampling*1e3)
+				self.track_smajor.append(kern_pix*self.input_par.ccd_sampling*1e3)
+				self.track_sminor.append(kern_pix*self.input_par.ccd_sampling*1e3)
 
 			# The case where the user doesn't want any tip-tilt contribution from the NGS (amplification factor  = 0)
 			else:
-				kern_pix = ((input_par.tt_kernel/2.35)/1000.0)/input_par.ccd_sampling
+				kern_pix = ((self.input_par.tt_kernel/2.35)/1000.0)/self.input_par.ccd_sampling
 
 				# Sum the contributions from the user's specified kernel and the CD and vib. terms
-				total_kern = np.sqrt(input_par.cd_term**2 + input_par.vib_term**2 + kern_pix**2) * self.tt_amp
+				total_kern = np.sqrt(self.input_par.cd_term**2 + self.input_par.vib_term**2 + kern_pix**2) * self.tt_amp
 				cov_mat = np.matrix([[total_kern**2, 0], [0, total_kern**2]])
 
 				gauss_star = fill_pixels_tt(P0, M, N, W, star=gauss_input, cov=cov_mat)
 
-				self.track_smajor.append(total_kern*input_par.ccd_sampling*1e3)
-				self.track_sminor.append(total_kern*input_par.ccd_sampling*1e3)
+				self.track_smajor.append(total_kern*self.input_par.ccd_sampling*1e3)
+				self.track_sminor.append(total_kern*self.input_par.ccd_sampling*1e3)
 
 		return gauss_star
 
@@ -336,15 +337,15 @@ class Source:
 		semi_minor_mas = self.semiminor_func(star_info["X"], star_info["Y"])[0][0] * self.tt_amp
 
 		# Convert to pixels, correct for sqrt(2) Cedric forgot in the original maps
-		semi_major = ((semi_major_mas/1000.0)/input_par.ccd_sampling)/np.sqrt(2)
-		semi_minor = ((semi_minor_mas/1000.0)/input_par.ccd_sampling)/np.sqrt(2)
+		semi_major = ((semi_major_mas/1000.0)/self.input_par.ccd_sampling)/np.sqrt(2)
+		semi_minor = ((semi_minor_mas/1000.0)/self.input_par.ccd_sampling)/np.sqrt(2)
 
 		# Add an extra vibration term (~30%), trying to account for the 10
-		semi_major_scale = np.sqrt(semi_major**2 + input_par.cd_term**2 + input_par.vib_term**2)
-		semi_minor_scale = np.sqrt(semi_minor**2 + input_par.cd_term**2 + input_par.vib_term**2)
+		semi_major_scale = np.sqrt(semi_major**2 + self.input_par.cd_term**2 + self.input_par.vib_term**2)
+		semi_minor_scale = np.sqrt(semi_minor**2 + self.input_par.cd_term**2 + self.input_par.vib_term**2)
 
-		self.track_smajor.append(semi_major_scale*input_par.ccd_sampling*1e3)
-		self.track_sminor.append(semi_minor_scale*input_par.ccd_sampling*1e3)
+		self.track_smajor.append(semi_major_scale*self.input_par.ccd_sampling*1e3)
+		self.track_sminor.append(semi_minor_scale*self.input_par.ccd_sampling*1e3)
 		
 		# For some reason the array is not oriented the correct way so y and x have to be swapped
 		theta = np.radians(self.theta_func(star_info["Y"], star_info["X"]))[0][0]

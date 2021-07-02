@@ -7,9 +7,9 @@ import numpy as np
 # 												Free Parameters									  						  #
 # ------------------------------------------------------------------------------------------------------------------------# 
 path_to_mavisim = "/Users/stephanie/Dropbox/ANUResearch/AO/MAVISIM1/mavisim/" # location of the mavisim directory
-path_to_data = "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
+path_to_data = path_to_mavisim + "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
 
-input_file = ascii.read("ngc3201_mavisim_input0year_imbh_4000stars2_radecFixedFlux") # input catalogue to simulate
+input_file = ascii.read(path_to_data + "ngc3201_mavisim_input0year_imbh_4000stars2_radecFixedFlux") # input catalogue to simulate
 
 filter = "V" 		 # specify the closest broadband filter to the monochromatic wavelength being studied (e.g. 550nm -> V)
 psf_wavelength = 550 # nm, the wavelength of the PSF database of choice

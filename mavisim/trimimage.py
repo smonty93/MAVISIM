@@ -23,11 +23,8 @@ __author__ = "Stephanie Monty"
 # Standard
 import numpy as np
 
-# Project-specific
-import mavisim.input_parameters as input_par
 
-
-def trim_image(image):
+def trim_image(input_par, image):
 
 	"""
 	Args:

@@ -28,7 +28,6 @@ from astropy.io import fits
 # Project-specific
 import mavisim.findclosestvalue as find_closest_value
 import mavisim.rampdown as rampdown
-import mavisim.input_parameters as input_par
 
 
 class BilinearInterpolation:
@@ -43,7 +42,8 @@ class BilinearInterpolation:
 
 	"""
 
-	def __init__(self, x_mu, y_mu):
+	def __init__(self, input_par, x_mu, y_mu):
+		self.input_par = input_par
 		self.x_mu = x_mu
 		self.y_mu = y_mu
 
@@ -59,7 +59,7 @@ class BilinearInterpolation:
 		"""
 
 		# Create the set of possible PSF locations
-		fv_psf_set = input_par.fv_psf_grid
+		fv_psf_set = self.input_par.fv_psf_grid
 
 		# Check first if the star is located exactly where a PSF exists, if so pass that PSF back
 		if np.any(np.isin(fv_psf_set, self.x_mu)) and np.any(np.isin(fv_psf_set, self.x_mu)):
@@ -185,7 +185,7 @@ class BilinearInterpolation:
 		#
 
 		# Distance between the corners (side of the box), fixed by the grid resolution
-		l = np.absolute(input_par.fv_psf_grid[0] - input_par.fv_psf_grid[1])
+		l = np.absolute(self.input_par.fv_psf_grid[0] - self.input_par.fv_psf_grid[1])
 
 		# Distance between the x position of the star (in array coord) and the left corners
 		# VERY IMPORTANT THIS HAS TO FOLLOW CONVENTION OF (0, 0) IN CENTRE OF CCD
@@ -223,10 +223,10 @@ class BilinearInterpolation:
 		cur_dir = os.getcwd()
 		
 		# Change to the directory where the FV PSFs are stored
-		os.chdir(input_par.path_to_mavisim + input_par.fv_psf_path)
+		os.chdir(self.input_par.fv_psf_path)
 		
 		# Open the FV PSF that's closest to the point source
-		fv_psf = fits.open(input_par.fv_psf_filename % (str(int(x_closest)), str(int(y_closest))))
+		fv_psf = fits.open(self.input_par.fv_psf_filename % (str(int(x_closest)), str(int(y_closest))))
 		fv_psf_truval = fv_psf[0].data
 		fv_psf_norm = fv_psf_truval/np.sum(fv_psf_truval)
 		fv_psf.close()
@@ -247,8 +247,8 @@ class BilinearInterpolation:
 		"""
 
 		# Find the location of the start and stop of the ramp function
-		xmin = (input_par.psf_core_rad_pix+5) - input_par.ramp_size/2.0
-		xmax = (input_par.psf_core_rad_pix+5) + input_par.ramp_size/2.0
+		xmin = (self.input_par.psf_core_rad_pix+5) - self.input_par.ramp_size/2.0
+		xmax = (self.input_par.psf_core_rad_pix+5) + self.input_par.ramp_size/2.0
 
 		# Ramp the PSF down to blend with the seeing rings
 		fv_psf_ramped = fv_psf_norm * rampdown.ramp_down(xmax, xmin, fv_psf_norm.shape[0])

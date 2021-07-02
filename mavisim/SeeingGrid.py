@@ -27,13 +27,13 @@ import sys
 from scipy import signal
 
 # Project-specific
-import mavisim.input_parameters as input_par
 import mavisim.rampup as rampup
 
 class SeeingGrid:
 
 	"""
 	Args:
+		input_par = input parameters either hardcoded or altered by the user
 		gauss_field = the grid of weighted Gaussians created in AOGaussGrid
 		
 	Returns:
@@ -41,20 +41,21 @@ class SeeingGrid:
 
 	"""
 
-	def __init__(self, gauss_grid):
+	def __init__(self, input_par, gauss_grid):
+		self.input_par = input_par
 
 		self.gauss_grid = gauss_grid
 
 
 	def main(self):
 
-		big_psf_data = input_par.big_psf[0].data
+		big_psf_data = self.input_par.big_psf[0].data
 
 		# Normalize the big PSF
 		big_psf_norm = big_psf_data/np.sum(big_psf_data)#(big_psf_data - np.amin(big_psf_data))/(np.amax(big_psf_data) - np.amin(big_psf_data))
 
-		xmin = (input_par.seeing_core_rad_pix + 5) - input_par.big_psf_ramp/2.0
-		xmax = (input_par.seeing_core_rad_pix + 5) + input_par.big_psf_ramp/2.0
+		xmin = (self.input_par.seeing_core_rad_pix + 5) - self.input_par.big_psf_ramp/2.0
+		xmax = (self.input_par.seeing_core_rad_pix + 5) + self.input_par.big_psf_ramp/2.0
 
 		# Ramp up the seeing limited wings
 		big_psf_smooth = big_psf_norm * rampup.ramp_up(xmin, xmax, big_psf_data.shape[0])

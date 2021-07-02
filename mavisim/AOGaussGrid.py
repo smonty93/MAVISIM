@@ -33,7 +33,7 @@ import numpy as np
 # Scipy
 from scipy import signal
 
-import mavisim.input_parameters as input_par
+# Project Specific
 import mavisim.rampdown as rampdown
 from mavisim.BilinearInterpolation import BilinearInterpolation
 
@@ -41,6 +41,7 @@ class AOGaussGrid:
 
 	"""
 	Args:
+		self.input_par = input parameters either hardcoded or altered by the user
 		source = the astropy table that contains the source object generated in Source
 		fv_psf = Boolean stating whether we want to use a static or spacially variable PSF
 		
@@ -50,7 +51,8 @@ class AOGaussGrid:
 
 	"""
 
-	def __init__(self, source_table, fv_psf=True):
+	def __init__(self, input_par, source_table, fv_psf=True):
+		self.input_par = input_par
 
 		self.source_table = source_table
 
@@ -74,7 +76,7 @@ class AOGaussGrid:
 		"""
 	
 		# Find the full FoV in pixels, this contains the buffer (which is trimmed later) to contain light from stars outside the FoV
-		full_fov_pix = int((input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling)
+		full_fov_pix = int((self.input_par.MAVIS_fov + self.input_par.buffer)/self.input_par.ccd_sampling)
 
 		# Create the CCD-sized array to store the convolved cores
 		ao_field = np.zeros([full_fov_pix, full_fov_pix])
@@ -85,7 +87,7 @@ class AOGaussGrid:
 		# If FV PSF is not selected, use the static PSF
 		if self.fv_psf == False:
 
-			static_psf = input_par.static_psf[0].data
+			static_psf = self.input_par.static_psf[0].data
 			static_norm = static_psf/np.sum(static_psf)
 			psf_ramped = self.ramp_psf(static_norm)
 
@@ -94,7 +96,7 @@ class AOGaussGrid:
 			
 			# If a FV PSF is selected, then update the ramped psf by interpolating the FV PSFs to find the corresponding AO core
 			if self.fv_psf == True:
-				psf_ramped = BilinearInterpolation(row["X"], row["Y"]).interp_psf()
+				psf_ramped = BilinearInterpolation(self.input_par, row["X"], row["Y"]).interp_psf()
 
 			# Load the Gaussian for rebinning and the Gaussian for the seeing grid
 			gauss = row["Gauss_Src"]
@@ -103,14 +105,14 @@ class AOGaussGrid:
 			ao_conv_core = signal.fftconvolve(psf_ramped, gauss, mode="same")
 
 			# At this point we need to swap x and y to recreate the CCD coordinate system
-			x_loc = int(np.around((row["Y"]/input_par.ccd_sampling) + ((full_fov_pix)/2.0), 0))
-			y_loc = int(np.around((row["X"]/input_par.ccd_sampling) + ((full_fov_pix)/2.0), 0))
+			x_loc = int(np.around((row["Y"]/self.input_par.ccd_sampling) + ((full_fov_pix)/2.0), 0))
+			y_loc = int(np.around((row["X"]/self.input_par.ccd_sampling) + ((full_fov_pix)/2.0), 0))
 
 			# Find the bounds of where the convolved ao core fits into the larger ao field
 			(xleft, xright, yleft, yright) = self.find_array_bounds(x_loc, y_loc, ao_conv_core.shape[0])
 
 			# Find the bounds of where the Gaussian fits into the larger Gaussian field
-			(xleft2, xright2, yleft2, yright2) = self.find_array_bounds(x_loc, y_loc, input_par.gauss_width)
+			(xleft2, xright2, yleft2, yright2) = self.find_array_bounds(x_loc, y_loc, self.input_par.gauss_width)
 
     
     		# Catch the cases where the star is outside the extended FoV
@@ -155,8 +157,8 @@ class AOGaussGrid:
 		"""
 
 		# Find the location of the start and stop of the ramp function
-		xmin = (input_par.psf_core_rad_pix+5) - input_par.ramp_size/2.0
-		xmax = (input_par.psf_core_rad_pix+5) + input_par.ramp_size/2.0
+		xmin = (self.input_par.psf_core_rad_pix+5) - self.input_par.ramp_size/2.0
+		xmax = (self.input_par.psf_core_rad_pix+5) + self.input_par.ramp_size/2.0
 
 		# Ramp the PSF down to blend with the seeing rings
 		psf_ramped = norm_psf * rampdown.ramp_down(xmax, xmin, norm_psf.shape[0])

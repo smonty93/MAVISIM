@@ -27,13 +27,20 @@ __author__ = "Stephanie Monty"
 ## Basic
 import numpy as np
 
-## Project Specific
-import mavisim.input_parameters as input_par
-
 ## Scipy
 from scipy import interpolate
 
-def make_ttkernel_map():
+def make_ttkernel_map(input_par):
+	"""
+	Args:
+		input_par = input parameters either hardcoded or altered by the user
+
+	Returns:
+		semimajor_func = returns a tip-tilt semi-major axis for a given centre of gravity (location in arcseconds) 
+		semiminor_func = returns a tip-tilt semi-minor axis for a given centre of gravity (location in arcseconds) 
+		theta_func = returns a inclination angle for a given centre of gravity (location in arcseconds) 
+
+	"""
 
 	tt_jitter_info = input_par.tt_jitter
 

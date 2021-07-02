@@ -37,13 +37,12 @@ import numpy as np
 # Astropy
 from astropy.table import Table, Column
 
-# Project-specific
-import mavisim.input_parameters as input_par
 
 class InputCoo:
 
 	"""
 	Args:
+		input_par = input parameters either hardcoded or altered by the user
 		source = the astropy table that contains the source object generated in Source
 		
 	Returns:
@@ -53,7 +52,8 @@ class InputCoo:
 
 	"""
 
-	def __init__(self, source_table):
+	def __init__(self, input_par, source_table):
+		self.input_par = input_par
 
 		self.source_table = source_table
 
@@ -64,14 +64,14 @@ class InputCoo:
 		# of DAOPhot (starts at position 1, 1)
 
 		# Find the full FoV in pixels, this contains the buffer (which is trimmed later) to contain light from stars outside the FoV
-		full_fov_pix = int((input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling)
+		full_fov_pix = int((self.input_par.MAVIS_fov + self.input_par.buffer)/self.input_par.ccd_sampling)
 
 		# Convert the position to pixels (remove the knowledge of the static distortion and add the proper motion (if any))
-		x_pos = np.array(np.around(((self.source_table["X"]/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
+		x_pos = np.array(np.around(((self.source_table["X"]/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
 		true_x = x_pos + self.source_table["X_Dist"] - self.source_table["Static_Dist"][:, 0] + self.source_table["X_PM"] + 1
 
 
-		y_pos = np.array(np.around(((self.source_table["Y"]/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
+		y_pos = np.array(np.around(((self.source_table["Y"]/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
 		true_y = y_pos + self.source_table["Y_Dist"] - self.source_table["Static_Dist"][:, 1] + self.source_table["Y_PM"] + 1
 
 		# Create the final table
@@ -88,20 +88,18 @@ class InputCoo:
 
 		# Roughly trim the input catalogue to only include stars in the MAVIS FoV
 		# Set the boundary to include stars just outside of the CCD limit (diagonal)
-		image_size = (input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling
+		image_size = (self.input_par.MAVIS_fov + self.input_par.buffer)/self.input_par.ccd_sampling
 
-		print (image_size)
+		r = np.sqrt(2 * (self.input_par.ccd_size/2.0)**2) + 100
 
-		r = np.sqrt(2 * (input_par.ccd_size/2.0)**2) + 100
-
-		r_coo = np.sqrt((int((image_size - input_par.ccd_size)/2.0) - input_coo["CCD_Mapped_X"])**2 + 
-						(int((image_size - input_par.ccd_size)/2.0) - input_coo["CCD_Mapped_Y"])**2)
+		r_coo = np.sqrt((int(image_size/2.0) - input_coo["CCD_Mapped_X"])**2 + 
+						(int(image_size /2.0) - input_coo["CCD_Mapped_Y"])**2)
 
 		trim = np.where(r_coo <= r)[0]
 		trimmed_cat = input_coo[trim]
 
 		# Correct for the change from the larger buffered FoV to the FoV of the MAVIS CCD
-		trimmed_cat["CCD_Mapped_X"] = trimmed_cat["CCD_Mapped_X"] - (image_size/2 - input_par.ccd_size/2)
-		trimmed_cat["CCD_Mapped_Y"] = trimmed_cat["CCD_Mapped_Y"] - (image_size/2 - input_par.ccd_size/2)
+		trimmed_cat["CCD_Mapped_X"] = trimmed_cat["CCD_Mapped_X"] - (image_size/2 - self.input_par.ccd_size/2)
+		trimmed_cat["CCD_Mapped_Y"] = trimmed_cat["CCD_Mapped_Y"] - (image_size/2 - self.input_par.ccd_size/2)
 
 		return (trimmed_cat)

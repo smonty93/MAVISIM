@@ -24,11 +24,8 @@ import numpy as np
 ## Astropy
 from astropy import units as u
 
-## Project Specific
-import mavisim.input_parameters as input_par
 
-
-def add_constant_sky_pixel(exp_time):
+def add_constant_sky_pixel(input_par, exp_time):
 	"""
 	Args:
 		exp_time = exposure time in seconds to convert from photons/s to photons

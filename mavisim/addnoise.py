@@ -25,12 +25,11 @@ import numpy as np
 ## Project Specific
 import mavisim.findclosestvalue
 from mavisim.addconstantskypixels import add_constant_sky_pixel
-import mavisim.input_parameters as input_par
 from mavisim.trimimage import trim_image
 
 
 
-def add_all_noise(image, exp_time):
+def add_all_noise(input_par, image, exp_time):
     """
     Args:
         image = 2D noise-free image (ao_gauss_grid + seeing_grid)
@@ -53,7 +52,7 @@ def add_all_noise(image, exp_time):
         read_noise = input_par.fast_rdnoise
 
     # Get the constant sky value in photons/pixel
-    sky_value = add_constant_sky_pixel(exp_time)
+    sky_value = add_constant_sky_pixel(input_par, exp_time)
 
     # Remove the chance of negative N photons (only sky in that region), this is due to artifacts from the PSF creation
     image_addsky = image + sky_value
@@ -88,6 +87,6 @@ def add_all_noise(image, exp_time):
     image_adu[image_adu > sat_point] = sat_point
 
     # Trim the image to 4k x 4k
-    final_image = trim_image(image_adu)
+    final_image = trim_image(input_par, image_adu)
     
     return (final_image)
