@@ -33,17 +33,25 @@ The following set of commands will create a MAVISIM image. These can also be fou
 <div class="admonition note">
 <p class="admonition-title">Creating a MAVISIM image</p>
 <p> 
+	# Imports <br>
+	<code>>>> import mavisim.input_parameters as input_par </code> <br>
+	<code>>>> from mavisim.Source import Source </code> <br>
+	<code>>>> from mavisim.AOGaussGrid import AOGaussGrid </code> <br>
+	<code>>>> from mavisim.SeeingGrid import SeeingGrid </code> <br>
+	<code>>>> from mavisim.addnoise import add_all_noise </code> <br>
+</p>
+<p> 
 	# Load the input source file <br>
 	<code>>>> glob_clust = input_par.input_file </code> <br>
 	<code>>>> exp_time = 30 # seconds </code>
 </p>
 <p> 
 	# Create the Source object with default static distortion and spatially variable tip-tilt error<br>
-	<code>>>> source = Source(glob_clust, exp_time, static_dist=True, tt_var=True).main()</code>
+	<code>>>> source = Source(input_par, glob_clust, exp_time, static_dist=True, tt_var=True).main()</code>
 </p>
 <p> 
 	# Create the AOGrid and GaussGrid objects with a spatially variable high-order PSF<br>
-	<code>>>> (ao_field, gauss_field) = AOGaussGrid(source, fv_psf=True).main()</code>
+	<code>>>> (ao_field, gauss_field) = AOGaussGrid(input_par, source, fv_psf=True).main()</code>
 </p>
 <p> 
 	# Create a Noise-Free Image<br>
@@ -51,7 +59,14 @@ The following set of commands will create a MAVISIM image. These can also be fou
 </p>
 <p> 
 	# Create the Final Image<br>
-	<code>>> final_image = add_all_noise(image, source.meta["exp_time"])</code>
+	<code>>> final_image = add_all_noise(input_par, image, source.meta["exp_time"])</code>
+
+</p>
+<p> 
+	# Optional: Create an Astropy Table of the Input Positions<br>
+	<code>>> input_coo = InputCoo(input_par, source, trim_cat=True).main()</code>
 </p>
 </div>
+
+A fits file can be created using the data from the final image.
 

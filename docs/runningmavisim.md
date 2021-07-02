@@ -46,7 +46,7 @@ This where the user can specify the bulk of the astrometric error terms along wi
 
 <div class="admonition note">
 <p class="admonition-title">Creating a source object with the default built-in static distortion and tip-tilt residual errors</p>
-<p> >>> <code>source = Source(glob_clust, exp_time, static_dist=True, tt_var=True).main()</code>
+<p> >>> <code>source = Source(input_par, glob_clust, exp_time, static_dist=True, tt_var=True).main()</code>
 </div>
 
 
@@ -56,7 +56,7 @@ This is where a unique PSF is created for each star and placed into a 40 arcseco
 <div class="admonition note">
 <p class="admonition-title">Creating an image with a spatially variable high-order PSF</p>
 <p> 
-	>>> <code>(ao_field, gauss_field) = AOGaussGrid(source, fv_psf=True).main()</code> 
+	>>> <code>(ao_field, gauss_field) = AOGaussGrid(input_par, source, fv_psf=True).main()</code> 
 </p>
 </div>
 
@@ -75,12 +75,12 @@ The final image (+noise) is larger than the actual MAVIS science field of view a
 
 <div class="admonition note">
 <p class="admonition-title">Creating the final image</p>
-<p><code> >>> final_image = add_all_noise(image, source.meta["exp_time"]) </code></p>
+<p><code> >>> final_image = add_all_noise(input_par, image, source.meta["exp_time"]) </code></p>
 </div>
 
 <div class="admonition tip">
 <p class="admonition-title">Stacking Images</p>
-<p>To simulate a stacked image simply loop this function, a unique noise profile will be added every time.</p>
+<p>To simulate a stacked image simply loop this function, a unique noise profile will be added every time. Be wary of RAM though! These arrays are large. </p>
 </div>
 
 ## *Optional Class:* InputCoo
@@ -92,7 +92,7 @@ This is an optional class that can be used to format an input catalogue of sourc
 
 <div class="admonition note">
 <p class="admonition-title">Creating a catalogue of the input source positions</p>
-<p><code> >>> input_coo = InputCoo(source).main() </code></p>
+<p><code> >>> input_coo = InputCoo(input_par, source).main() </code></p>
 </div>
 
 
