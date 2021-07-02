@@ -6,5 +6,5 @@ theme:
 nav:
   - Home: 'index.md'
   - Installing MAVISIM: 'install.md'
-  - Running MAVISIM - The Short Version: 'runningmavisimshort.md'
-  - Running MAVISIM - The Short Version: 'runningmavisim.md'
+  - 'runningmavisimshort.md'
+  - 'runningmavisim.md'
