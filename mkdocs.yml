@@ -1,5 +1,5 @@
 site_name: MAVISIM
-site_url: https://example.com/
+site_url: https://mavisim.readthedocs.io/en/latest/index.html
 repo_url: https://github.com/smonty93/MAVISIM/
 theme:
   name: readthedocs
