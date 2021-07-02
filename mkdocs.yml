@@ -4,13 +4,7 @@ site_url: https://example.com
 theme:
   name: readthedocs
 nav:
-  - 'index.md'
-  - 'install.md'
-  - 'runningmavisimshort.md'
-  - 'runningmavisim.md'
-markdown_extensions:
-  - admonition
-  - codehilite
-  - toc:
-      permalink: True
-      separator: "_"
+  - Home: 'index.md'
+  - Installing MAVISIM: 'install.md'
+  - Running MAVISIM - The Short Version: 'runningmavisimshort.md'
+  - Running MAVISIM - The Short Version: 'runningmavisim.md'
