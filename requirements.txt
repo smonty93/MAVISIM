@@ -1,0 +1,9 @@
+ipython
+notebook
+numpy
+matplotlib
+astropy
+pyfftw
+scipy
+torch
+opt_einsum

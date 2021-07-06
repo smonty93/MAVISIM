@@ -12,27 +12,11 @@ t1 = time.time()
 from astropy.io import fits, ascii
 from astropy.table import Table
 
-from src.mavisim.generate_image import TileGenerator
-from src.mavisim.generate_image import ImageGenerator
+from mavisim.generate_image import ImageGenerator
 
-# Project-specific/
-#sys.path.append('/src')
-cwd = os.getcwd()
-os.chdir(os.getcwd() + "/src")
-
-#import mavisim.rampup
-#import mavisim.addconstantsky
-#import mavissimim.addnoise
-#import mavissimim.trimimage
 import mavisim.input_parameters as input_par
-#from rebin import rebin
-
 from mavisim.Source import Source
-#from mavissimim.AOGaussGrid import AOGaussGrid
-#from mavissimim.SeeingGrid import SeeingGrid
-from mavisim.InputCoo import InputCoo
 
-os.chdir(cwd)
 # Nbody input plus chosen exposure time
 ngc3201 = input_par.nbody_in
 
