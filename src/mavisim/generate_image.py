@@ -245,9 +245,6 @@ class TileGenerator:
             self._fft_pos = tensor(np.c_[uu[:new_shape[0],:new_shape[1]].flatten(),
                                  vv[:new_shape[0],:new_shape[1]].flatten()].T)
             
-            # Run einsum calcs once to determine optimal sequence:
-            self.optimize_star_kernel()
-            
             self._init = False
         t2 = time.time()
         
