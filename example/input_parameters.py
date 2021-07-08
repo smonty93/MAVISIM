@@ -6,8 +6,7 @@ import numpy as np
 # ------------------------------------------------------------------------------------------------------------------------#
 # 												Free Parameters									  						  #
 # ------------------------------------------------------------------------------------------------------------------------# 
-path_to_mavisim = "/Users/stephanie/Dropbox/ANUResearch/AO/MAVISIM1/" # location of the mavisim directory
-path_to_data = path_to_mavisim + "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
+path_to_data = "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
 
 input_file = ascii.read("ngc3201_mavisim_input0year_imbh_4000stars2_radecFixedFlux") # input catalogue to simulate
 

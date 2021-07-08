@@ -3,7 +3,6 @@
 ## Specifications
 To create an image of a point source catalogue with the default settings, only a subset of settings must be specified. In the `input_parameter.py` file please edit the following:
 
-- `path_to_mavisim`: full path to the location of the mavisim directory
 - `path_to_data`: full path to the location of the mavisim data files (e.g. the PSF database)
 - `input_file`: name of the input source catalogue (e.g. nbody file)
 - `fv_psf_path`: name of the PSF database (assuming it's stored in the data directory)

@@ -1,6 +1,6 @@
 # Installation
 
-MAVISIM is not currently uploaded to the Python Package Index and thus must be installed from source. To install MAVISIM 1.0 please download the main github branch. The following should be sufficient in most cases to install MAVISIM:
+MAVISIM is not currently uploaded to the Python Package Index and thus must be installed from source. The following should be sufficient in most cases to install MAVISIM 1.0 (currently the main branch):
 ```bash
 git clone git@github.com:smonty93/MAVISIM.git
 cd MAVISIM
