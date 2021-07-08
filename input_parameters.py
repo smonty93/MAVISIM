@@ -6,15 +6,14 @@ import numpy as np
 # ------------------------------------------------------------------------------------------------------------------------#
 # 												Free Parameters									  						  #
 # ------------------------------------------------------------------------------------------------------------------------# 
-path_to_mavisim = "/Users/stephanie/Dropbox/ANUResearch/AO/MAVISIM1/mavisim/" # location of the mavisim directory
-path_to_data = path_to_mavisim + "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
+path_to_data = "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
 
 input_file = ascii.read(path_to_data + "example/ngc3201_mavisim_input0year_imbh_4000stars2_radecFixedFlux") # input catalogue to simulate
 
 filter = "V" 		 # specify the closest broadband filter to the monochromatic wavelength being studied (e.g. 550nm -> V)
 psf_wavelength = 550 # nm, the wavelength of the PSF database of choice
-fv_psf_path = path_to_data + "PSF_Grid_1ArcSecFoV_75masSampling_Jan2020Code_NoTT/"												 # Database of field variable PSFs (11 x 11 grid)								
-static_psf = fits.open(path_to_data + "PSF_Grid_1ArcSecFoV_75masSampling_Jan2020Code_NoTT/PSF_0_0dir_arcsec_1arcsec_550nm.fits") # Single PSF to use for static case, assumed to be best (central PSF)
+fv_psf_path = path_to_data + "PSF_Grid_1ArcSecFoV_75masSampling_Jan2020Code_NoTT_550nm/"												 # Database of field variable PSFs (11 x 11 grid)								
+static_psf = fits.open(fv_psf_path + "/PSF_0_0dir_arcsec_1arcsec_550nm.fits") # Single PSF to use for static case, assumed to be best (central PSF)
 
 tt_residual_map = "TT_jitter_mavis_astrad10_10_10_angles0_120_240_mag15.0_15.0_15.0_121dirs_sr80.0_80.0_80.0_at1650nm.fits" # tip-tilt residual map to use in the case of a field variable TT kernel
 tt_kernel = 8.0 																											# generic tip-tilt kernel FWHM in mas if the user wants a static tt kernel not derived from the map
