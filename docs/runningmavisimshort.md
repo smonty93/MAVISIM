@@ -49,6 +49,9 @@ source = Source(input_par, glob_clust, exp_time, static_dist=True, tt_var=True).
 # Create the AOGrid and GaussGrid objects with a spatially variable high-order PSF
 (ao_field, gauss_field) = AOGaussGrid(input_par, source, fv_psf=True).main()
 
+# Create the seeing field to add the PSF wings
+seeing_field = SeeingGrid(input_par, gauss_field).main()
+
 # Create a Noise-Free Image
 image = ao_field + seeing_field
 

@@ -65,6 +65,9 @@ The `SeeingGrid` class creates a complementary field to the `ao_field` by convol
 
 ### Relevant Command
 ```python
+# Create the seeing field to add the PSF wings
+seeing_field = SeeingGrid(input_par, gauss_field).main()
+
 # Creating a noise-free image
 image = ao_field + seeing_field
 ```
