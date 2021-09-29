@@ -10,7 +10,7 @@ if os.path.isfile(requirementPath):
     with open(requirementPath) as f:
         install_requires = f.read().splitlines()
 
-setup(name='MAVISIM',
+setup(name='mavisim',
       version='1.1',
       description='MAVIS Image Simulator',
       author='Stephanie Monty',
