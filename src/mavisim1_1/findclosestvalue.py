@@ -2,9 +2,9 @@
 #
 # TITLE - find closest value
 # AUTHOR - Stephanie Monty
-# PROJECT - MAVISSimIm
+# PROJECT - MAVISIM
 # CONTENTS:
-#   1. 
+#   1. Find the closest value 
 #
 # ----------------------------------------------------------------------------
 
@@ -21,14 +21,9 @@ import numpy as np
 
 def find_closest_value(ref, val):
 	"""
-	find closest value
-
-	Find the closest match between a value and an array of values
-
 	Args:
 		ref - array of values to locate match
 		val - value to find match for
-
 	Returns:
 		index - location of matched value in the reference array
 	"""

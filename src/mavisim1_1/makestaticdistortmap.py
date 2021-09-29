@@ -25,15 +25,12 @@ __author__ = "Stephanie Monty"
 ## Basic
 import numpy as np
 
-## Project Specific
-import mavisim.input_parameters as input_par
-
 ## Scipy
 from scipy import interpolate
 
 # Call this function once to create functions to find the distortion (shift in x & y) at any point
 
-def make_static_dist_map():
+def make_static_dist_map(input_par):
     # Field_y(deg) Hx Hy  Predicted_x(mm)  Predicted_y(mm)  Real_x(mm)  Real_y(mm)
 
     field_x = input_par.static_distort["Field_x(deg)"]
