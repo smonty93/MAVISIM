@@ -10,13 +10,13 @@ if os.path.isfile(requirementPath):
     with open(requirementPath) as f:
         install_requires = f.read().splitlines()
 
-setup(name='MAVISIM',
+setup(name='mavisim-gpu',
       version='1.1',
-      description='MAVIS Image Simulator',
+      description='MAVIS Image Simulator - with CUDA GPU acceleration',
       author='Stephanie Monty',
       author_email='Stephanie.Monty@anu.edu.au',
       url='https://www.github.com/smonty93/MAVISIM',
       install_requires=install_requires,
-      package_dir={'mavisim':'src/mavisim1_1'},
-      packages=['mavisim'],
+      package_dir={'mavisimgpu':'src/mavisim1_1'},
+      packages=['mavisimgpu'],
      )
