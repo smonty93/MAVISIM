@@ -17,6 +17,6 @@ setup(name='MAVISIM',
       author_email='Stephanie.Monty@anu.edu.au',
       url='https://www.github.com/smonty93/MAVISIM',
       install_requires=install_requires,
-      package_dir={'mavisim':'src/mavisim'},
+      package_dir={'mavisim':'src/mavisim1_1'},
       packages=['mavisim'],
      )
