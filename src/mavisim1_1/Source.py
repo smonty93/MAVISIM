@@ -130,7 +130,7 @@ class Source:
 
 			source_table.add_row(star_row)
 
-		# Print information on the static distortion applied
+		# Print some information on the static distortion applied
 		print (" ")
 		print ("Average X static distortion applied (mas) = %s" % str(np.average(np.absolute(source_table["Static_Dist"][:, 0])) * (1e3 * self.input_par.ccd_sampling)))
 		
