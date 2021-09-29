@@ -2,15 +2,16 @@
 #
 # TITLE - add read noise
 # AUTHOR - Stephanie Monty
-# PROJECT - MAVISSimIm
+# PROJECT - mavisim
 # CONTENTS:
-#   1. Fill this in
+#   1. Add photon noise (Poisson), sky background and read noise (Gaussian) to the image using the detector and sky characteristics included in input_par.
+#   2. Handles the throughput of the VLT and Q.E. of the detector in the V band only for now.
+#   3. Saturation is also dealt with using the detector characteristics in input_par
 #
 # ----------------------------------------------------------------------------
 ### Docstrings and metadata:
 """
 Adding all noise to the image and converting from photons to electrons to ADU
-
 """
 
 __author__ = "Stephanie Monty"
@@ -22,11 +23,19 @@ import numpy as np
 
 ## Project Specific
 from mavisim.addconstantskypixels import add_constant_sky_pixel
-import mavisim.input_parameters as input_par
 
 
 
-def add_all_noise(image, exp_time):
+def add_all_noise(input_par, image, exp_time):
+    """
+    Args:
+        image = 2D noise-free image (ao_gauss_grid + seeing_grid)
+        exp_time = total exposure time
+        
+    Returns:
+        image_adu = final image + noise in ADU
+    """
+
     # Create the true image by randomly sampling Poissons with expectation intervals = N* + Nsky
     # Add the readnoise on top by randomly sampling Gaussians with a sigma = readnoise
     
@@ -39,9 +48,7 @@ def add_all_noise(image, exp_time):
         read_noise = input_par.fast_rdnoise
 
     # Get the constant sky value in photons/pixel
-    sky_value = add_constant_sky_pixel(exp_time)
-
-    print (sky_value)
+    sky_value = add_constant_sky_pixel(input_par, exp_time)
 
     # Remove the chance of negative N photons (only sky in that region), this is due to artifacts from the PSF creation
     image_addsky = image + sky_value
@@ -51,14 +58,11 @@ def add_all_noise(image, exp_time):
     image_addsky_mirror = image_addsky * input_par.AOMthruput * input_par.VLTthruput
 
     # Add the shot noise (from Poissonian stats)
-    # we not sky limited on the pixel scale - Poisson statistics
+    # We are not sky limited on the pixel scale - Poisson statistics
     rng = np.random.default_rng()
 
-    # Change to Poisson, and add throughput before drawing the Poisson statistics
+    # Draw the image in photons + photon noise
     true_im = rng.poisson(lam=image_addsky_mirror)
-
-    # Legacy: Gaussian stats
-    #true_im = np.random.normal(loc=image_addsky_mirror, scale=np.sqrt(image_addsky))
 
     # Convert from photons to electrons
     im_elec = true_im  * input_par.QE
@@ -77,9 +81,5 @@ def add_all_noise(image, exp_time):
     # Convert from electrons to ADU, round to integers to be physical
     image_adu = (im_addnoise * input_par.gain).astype(np.int)
     image_adu[image_adu > sat_point] = sat_point
-
-    print (np.average(image_adu[2400:2460, 2100:2160]))
-    print (np.std(image_adu[2400:2460, 2100:2160]))
-
-    
+	
     return (image_adu)
