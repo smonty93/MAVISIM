@@ -6,11 +6,11 @@ from copy import deepcopy
 import torch
 from opt_einsum import contract
 
-device = 1
+device = 0
 fft = torch.fft
 
 def tensor(array):
-    return torch.tensor(array,device=1)
+    return torch.tensor(array,device=device)
 
 class PSF:
     """
