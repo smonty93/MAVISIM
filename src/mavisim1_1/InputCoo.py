@@ -63,24 +63,24 @@ class InputCoo:
 		full_fov_pix = int((self.input_par.MAVIS_fov + self.input_par.buffer)/self.input_par.ccd_sampling)
 
 		# Convert the position to pixels (remove the knowledge of the static distortion and add the proper motion (if any))
-		x_pos = np.array(np.around(((self.source_table["X"]/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-		true_x = x_pos + self.source_table["X_Dist"] - self.source_table["Static_Dist"][:, 0] + self.source_table["X_PM"] + 1
+		x_pos = np.array(np.around(((self.source_table.x_pos/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
+		true_x = x_pos + self.source_table.x_dist - self.source_table.static_dist[:, 0] + self.source_table.x_pm + 1
 
 
-		y_pos = np.array(np.around(((self.source_table["Y"]/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-		true_y = y_pos + self.source_table["Y_Dist"] - self.source_table["Static_Dist"][:, 1] + self.source_table["Y_PM"] + 1
+		y_pos = np.array(np.around(((self.source_table.y_pos/self.input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
+		true_y = y_pos + self.source_table.y_dist - self.source_table.static_dist[:, 1] + self.source_table.y_pm + 1
 
 		# Create the final table
-		input_coo = Table(data = ([self.source_table["Star"]]))
-		input_coo.add_column(self.source_table["Flux"])
-		input_coo.add_column(self.source_table["RA"])
-		input_coo.add_column(self.source_table["Dec"])
+		input_coo = Table(data = (self.source_table.star,),names=("Star",))
+		input_coo.add_column(Column(self.source_table.flux),name="Flux")
+		input_coo.add_column(Column(self.source_table.ra),name="RA")
+		input_coo.add_column(Column(self.source_table.dec),name="Dec")
 		input_coo.add_column(Column(true_x), name="CCD_Mapped_X")
-		input_coo.add_column(self.source_table["X_PM"], name="CCD_Mapped_PM_X")
-		input_coo.add_column(self.source_table["Static_Dist"][:, 0], name="X Static Dist")
+		input_coo.add_column(Column(self.source_table.x_pm), name="CCD_Mapped_PM_X")
+		input_coo.add_column(Column(self.source_table.static_dist[:, 0]), name="X Static Dist")
 		input_coo.add_column(Column(true_y), name="CCD_Mapped_Y")
-		input_coo.add_column(self.source_table["Y_PM"], name="CCD_Mapped_PM_Y")
-		input_coo.add_column(self.source_table["Static_Dist"][:, 1], name="Y Static Dist")
+		input_coo.add_column(Column(self.source_table.y_pm), name="CCD_Mapped_PM_Y")
+		input_coo.add_column(Column(self.source_table.static_dist[:, 1]), name="Y Static Dist")
 
 		# Roughly trim the input catalogue to only include stars in the MAVIS FoV
 		# Set the boundary to include stars just outside of the CCD limit (diagonal)
