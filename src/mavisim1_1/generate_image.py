@@ -1,8 +1,6 @@
 import numpy as np
-import pyfftw
-import time
 from astropy.io import fits
-from copy import deepcopy
+from tqdm import tqdm
 
 class PSF:
     """
@@ -33,7 +31,6 @@ class PSF:
         self.xpos     = float(fits_ext.header["YPOS"])
         self.ypos     = float(fits_ext.header["XPOS"])
         self.Lambda   = float(fits_ext.header["LAMBDA"])
-        print(f"x: {self.xpos:7.3f}\", y: {self.ypos:7.3f}\"",end="\r")
     
 class TileGenerator:
     """
@@ -79,7 +76,7 @@ class TileGenerator:
 
     """
     
-    def __init__( self, source_list, psfs_file, gauss_width_pix, *,
+    def __init__( self, source, psfs_file, gauss_width_pix, *,
              dtype = np.complex128, which_psf = None):
         """Initialise tile generator object by preparing source list and PSFs
 
@@ -103,7 +100,9 @@ class TileGenerator:
         self.dtype=dtype
 
         # Parse source info:
-        self.source = deepcopy(source_list["Gauss_Info"])
+        self.source_flux = source.flux.copy()
+        self.source_pos  = source.gauss_pos.copy()
+        self.source_cov  = source.gauss_cov.copy()
         
         # Define nominal image geometry:
         # TODO read this from fits Primary HDU metadata
@@ -129,7 +128,7 @@ class TileGenerator:
             print("Using varible PSFs")
             print("Doing PSF FFTs:")
             self.psfs = []
-            for psf in psfs_fits[1:]:
+            for psf in tqdm(psfs_fits[1:],leave=False):
                 self.psfs.append(PSF(psf, self.fourier_tile_dim))
             psfs_fits.close()
             print("Done.                          ")
@@ -144,7 +143,7 @@ class TileGenerator:
 
         self._init = True
         
-    def get_effective_psf_fft(self, star):
+    def get_effective_psf_fft(self, s_pos):
         """Takes star information and computes effective PSF.
 
         From star position, the convex combination PSF is found
@@ -156,11 +155,8 @@ class TileGenerator:
         
         Parameters
         ----------
-        star : List
-            list containing the 3 values defining a star:
-                [0] -> flux
-                [1] -> position [arcsec]
-                [2] -> gaussian covariance [arcsec^2]
+        star_pos : np.ndarray : position [arcsec]
+        
         """
         
         if self.static == True:
@@ -168,7 +164,6 @@ class TileGenerator:
             self._psf_array += self.psfs[0].fft_data
         else:
             # Perform convex combination of PSFs based on star position
-            s_pos = star[1]
             for psf in self.psfs:
                 gamma_check = \
                     (np.abs(psf.xpos-s_pos[0]) < self.psf_pitch) and \
@@ -190,9 +185,9 @@ class TileGenerator:
 
 
         From the tile_generator object tgen, calling tgen.get_tile(index) will
-        generate the tile corresponding to the tgen.source[index] star by 
+        generate the tile corresponding to the tgen.source_pos[index] star by 
         interpolating the 4 neighbouring PSFs and convolving this effective
-        PSF with a Gaussian kernel defined by tgen.source[index].
+        PSF with a Gaussian kernel defined by tgen.source_cov[index].
 
         The output of this is a tile which has been trimmed down to the input
         PSF dimensions, as well as the coordinates of the bottom-left-corner
@@ -214,8 +209,6 @@ class TileGenerator:
         timing : dict
             dictionary with timing for various parts of program
         """
-        
-        t1 = time.time()
         
         if self._init == True:
             # Initialise internal variables first time around
@@ -241,46 +234,38 @@ class TileGenerator:
             self.optimize_star_kernel()
             
             self._init = False
-        t2 = time.time()
         
-        # Pick star from source table:
-        star = self.source[index]
+        # Pick star from source table
+        star_flux = self.source_flux[index]
+        star_pos  = self.source_pos[index]
+        star_cov  = self.source_cov[index]
         if self.dtype==np.complex64:
-            star = [x.astype(np.float32) for x in star]
+            star_flux = np.float32(star_flux)
+            star_pos  = star_pos.astype(np.float32)
+            star_cov  = star_cov.astype(np.float32)
 
         # Clear internal array:
         self._psf_array *= 0.0
-        t3 = time.time()
 
         # Compute effective PSF:
-        self.get_effective_psf_fft(star)
-        t4 = time.time()
+        self.get_effective_psf_fft(star_pos)
 
         # Prepare for FFT Gaussian computation:
-        offset = (((((star[1] % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
-        star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
-        bottom_left_corner = star[1]-offset-self.psf_width_as/2 - 0.5*self.pixsize
-        t5 = time.time()
+        offset = (((((star_pos % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
+        _star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
+        bottom_left_corner = star_pos-offset-self.psf_width_as/2 - 0.5*self.pixsize
 
         # Compute star Gaussian and convolve with PSF:
-        self._psf_array *= self.get_star_kernel_fft(star[0], star[2], star_pos)
-        t6 = time.time()
+        self._psf_array *= self.get_star_kernel_fft(star_flux, star_cov, _star_pos)
         
         # Inverse FFT and trimming:
         out = (np.fft.fftshift(
             np.fft.irfft2(
                 (self._psf_array)
             ).astype(self.dtype))).real[:self.psf_width_pix,:self.psf_width_pix]
-        t7 = time.time()
 
-        return out, bottom_left_corner, {
-            "clear":t3-t2,
-            "psf":t4-t3,
-            "prep":t5-t4,
-            "star":t6-t5,
-            "fft":t7-t6,
-        }
-    
+        return out, bottom_left_corner    
+
     def get_star_kernel_fft(self, flux, cov, mu):
         """Compute star Gaussian based in DFT space.
 
@@ -331,9 +316,8 @@ class TileGenerator:
     def optimize_star_kernel(self):
         """Runs star kernel once to optimise np.einsum"""
 
-        star = self.source[0]
-        cov = star[2]
-        mu = star[1]
+        cov = self.source_cov[0]
+        mu  = self.source_pos[0]
         offset = 2*np.pi*1j*mu.flatten()
         self._esp1 = np.einsum_path(
                     "ij,ii,ij->j",
@@ -384,7 +368,7 @@ class ImageGenerator:
     get_source_list()
         getter function for source list as seen by tile generator
     """
-    def __init__(self, array_width_pix, pixsize, source_list, psfs_file, gauss_width_pix,
+    def __init__(self, array_width_pix, pixsize, source, psfs_file, gauss_width_pix,
             which_psf = None):        
         """Contructor for ImageGenerator object
 
@@ -412,46 +396,27 @@ class ImageGenerator:
         self.fov = self.xx[-1]-self.xx[0]
         self.xx -= (self.fov/2+self.pixsize/2)
         self.full_image = np.zeros([self.xx.shape[0],self.xx.shape[0]])
-        self.tile_gen = TileGenerator(source_list, psfs_file, gauss_width_pix, which_psf=which_psf)
+        self.tile_gen = TileGenerator(source, psfs_file, gauss_width_pix, which_psf=which_psf)
+        self.nsource = source.flux.shape[0]
         
     def main(self):
         """Loop over all stars and add the tile to the full image."""
-
-        time_profile = None
-        print(" | ".join([f"{x:7s}" for x in self.tile_gen.get_tile(0)[2]]) + " ||  ETA")
-        for ni in range(len(self.tile_gen.source)):
+        for ni in tqdm(range(self.nsource),leave=False):
             # Generate the tile:
-            tile = self.tile_gen.get_tile(ni)
-            
+            tile,origin = self.tile_gen.get_tile(ni)
             # Find the location of the tile in the full image:
-            xstart = np.abs(self.xx-tile[1][0]).argmin()
-            ystart = np.abs(self.xx-tile[1][1]).argmin()
-
+            xstart = np.abs(self.xx-origin[0]).argmin()
+            ystart = np.abs(self.xx-origin[1]).argmin()
             # Slice the tile in:
             self.full_image[ystart:ystart+self.tile_gen.psf_width_pix,
-                            xstart:xstart+self.tile_gen.psf_width_pix] += tile[0]
-            
-            # Print timing details
-            if time_profile is not None:
-                time_profile = {x:time_profile[x]+tile[2][x] for x in time_profile}
-            else:
-                time_profile = tile[2]
-            eta = (len(self.tile_gen.source)-ni)*(sum(time_profile.values())/(ni+1))
-            print(" | ".join([f"{time_profile[x]/(ni+1):7.5f}" for x in time_profile]) + \
-                    f" || {eta:0.2f}          ",end="\r")
-        print("\ndone")
-        print("Totals:")
-        print(" | ".join([f"{x:7s}" for x in time_profile])+" || TOTAL")
-        total = sum(time_profile.values())
-        print(" | ".join([f"{time_profile[x]:7.2f}" for x in time_profile]) + f" || {total:0.2f}")
+                            xstart:xstart+self.tile_gen.psf_width_pix] += tile
         
     def get_rebinned_cropped(self,rebin_factor,cropped_width_as):
         """Rebin self.full_image after cropping to desired rebin factor."""
 
         xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
-        xx_cropped = self.xx[xx_cropped_id]
         cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
-        rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//2)
+        rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
         return rebinned_im
 
     def rebin(self, arr, new_shape):
@@ -459,8 +424,4 @@ class ImageGenerator:
         shape = (new_shape[0], arr.shape[0] // new_shape[0],
                  new_shape[1], arr.shape[1] // new_shape[1])
         return arr.reshape(shape).mean(-1).mean(1)
-
-    def get_source_list(self):
-        """Getter function for tile generator source list."""
-        return self.tile_gen.source
 

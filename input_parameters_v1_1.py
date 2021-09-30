@@ -13,7 +13,6 @@ input_file = ascii.read("fornax5_formatted_trim35") # input catalogue to simulat
 filter = "V" 		 # specify the closest broadband filter to the monochromatic wavelength being studied (e.g. 550nm -> V)
 psf_wavelength = 550 # nm, the wavelength of the PSF database of choice
 fv_psf_path = path_to_data + "PSF_Grid_1ArcSecFoV_75masSampling_Jan2020Code_NoTT_550nm/"												 # Database of field variable PSFs (11 x 11 grid)								
-static_psf = fits.open(fv_psf_path + "/PSF_0_0dir_arcsec_1arcsec_550nm.fits") # Single PSF to use for static case, assumed to be best (central PSF)
 
 tt_residual_map = "TT_jitter_mavis_astrad10_10_10_angles0_120_240_mag15.0_15.0_15.0_121dirs_sr80.0_80.0_80.0_at1650nm.fits" # tip-tilt residual map to use in the case of a field variable TT kernel
 tt_kernel = 8.0 																											# generic tip-tilt kernel FWHM in mas if the user wants a static tt kernel not derived from the map
@@ -40,16 +39,6 @@ cd_term = 0.4 		# FWHM = 7.05 pixels to account for charge diffusion, base jitte
 gauss_width = 34 	# pixels, 11 x 11 array to store gaussian with central pixel = xcog, ycog
 gauss_wing = 17 	# pixels, size of the wings of the gaussian (centred at xcog, ycog) extending to gauss_width total
 gauss_offset = -0.5 # pixels, offset to make sure the rebinning maintains a centred PSF
-
-# Arcetri PSF + weights to help blend the wings
-big_psf =  fits.open(path_to_data + "PSF_0_0dir_arcsec_40arcsec_75mas_550nm.fits") # big PSF to gather info for seeing wings
-big_psf_ramp = 3.5 																   # pixels, to help ramp the seeing wings into the AO core
-weight_grid = ascii.read(path_to_data + "Seeing_Weights_Aug2020")				   # weights to help with realistically ramping the PSF wings
-
-# TT Jitter
-tt_jitter =  fits.open(path_to_data + "TTJitterMaps/" + tt_residual_map)		   # TT residual map used to recover tip-tilt contribution from NGS
-tt_theta_conv = "Degrees"
-shift_tech = "Matrix"
 
 # Static Distortion
 static_distort =  ascii.read(path_to_data + "StaticDistortTransmissive")		   # Static distortion map reflecting the contribution of the MAVIS optics
