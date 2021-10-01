@@ -11,6 +11,7 @@ MAVIS_fov = 30 # arcseconds
 buffer = 10.005 #buffer in arcseconds to add to the MAVIS fov to account for stars outside the science fov
 
 # Input Catalogue info (if relevant)
+# TODO: move to data dir
 nbody_in = ascii.read("../src/mavisim/ngc3201_mavissimim_input0year_imbh_4000stars2_radecFixedFlux")
 nbody_yr = 0
 
@@ -22,8 +23,6 @@ psf_sampling = 0.0075 # Upsampling the PSF to avoid ringing, rebinning happens i
 # Gaussian Point Source Info
 vib_term = 0.48 #0.48 pixels, FWHM = 8.225 mas extra vibration, accounting for the 10mas min FWHM
 cd_term = 0.4 #0.4 pixels, FWHM = 7.05 pixels to account for charge diffusion, base jitter in the case of a static jitter kernal
-gauss_width = 34 # pixels, 11 x 11 array to store gaussian with central pixel = xcog, ycog
-gauss_wing = 17 # pixels, size of the wings of the gaussian (centred at xcog, ycog) extending to gauss_width total
 gauss_offset = -0.5 # pixels, offset to make sure the rebinning maintains a centred PSF
 
 # Static Distortion
@@ -44,6 +43,7 @@ QE = 0.89 		   # for 550nm  --> generalise this
 
 # Sky Background
 surf_bright = 21.61   # mag/square arcsecond
+# TODO: move this to data dir
 sky_bright =  ascii.read("../src/mavisim/sky_emission.dat")
 sky_bright["lambda_nm"].unit = u.nm
 sky_bright["flux"].unit = u.s**(-1) * u.m**(-2) * u.um**(-1) * u.arcsec**(-2)
