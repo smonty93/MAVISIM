@@ -2,7 +2,7 @@
 #
 # TITLE - static_distortion_map
 # AUTHOR - Stephanie Monty
-# PROJECT - MAVISSimIm
+# PROJECT - MAVISIM
 # CONTENTS:
 #   1. 
 #
