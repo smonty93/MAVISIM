@@ -17,6 +17,6 @@ setup(name='mavisim-gpu',
       author_email='Stephanie.Monty@anu.edu.au',
       url='https://www.github.com/smonty93/MAVISIM',
       install_requires=install_requires,
-      package_dir={'mavisimgpu':'src/mavisim1_1'},
+      package_dir={'mavisimgpu':'src/mavisim'},
       packages=['mavisimgpu'],
      )
