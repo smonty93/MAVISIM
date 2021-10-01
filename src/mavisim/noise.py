@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------
 #
-# TITLE - add read noise
+# TITLE - noise
 # AUTHOR - Stephanie Monty
 # PROJECT - mavisim
 # CONTENTS:
@@ -20,11 +20,7 @@ __author__ = "Stephanie Monty"
 
 ## Basic
 import numpy as np
-
-## Project Specific
-from mavisim.addconstantskypixels import add_constant_sky_pixel
-
-
+from astropy import units as u
 
 def add_all_noise(input_par, image, exp_time):
     """
@@ -83,3 +79,28 @@ def add_all_noise(input_par, image, exp_time):
     image_adu[image_adu > sat_point] = sat_point
 	
     return (image_adu)
+
+def add_constant_sky_pixel(input_par, exp_time):
+	"""
+	Args:
+		exp_time = exposure time in seconds to convert from photons/s to photons
+		
+	Returns:
+		sky_value = a global sky value in photons to add to every pixel
+	""" 
+
+	square_arcsec_pervoxel = (input_par.ccd_sampling**2) * u.arcsec**2
+
+	# Assuming the surface brightness is passed in as mag/arcsec^2 do the following:
+	flux_jy = (3631 * 10**(-1*input_par.surf_bright/2.5))*u.Jy*u.nm**(-1)
+
+	flux_ph_s_nm_cm2 = flux_jy * (1.51e3/input_par.psf_wavelength)
+
+	flux_ph_s_nm_m2 = flux_ph_s_nm_cm2 * 10**4
+
+	flux_ph_s_m2 = flux_ph_s_nm_m2 * input_par.filt_width #in nm
+
+	sky_value = flux_ph_s_m2 * square_arcsec_pervoxel  * exp_time * input_par.collecting_area
+
+	
+	return (sky_value.value)
