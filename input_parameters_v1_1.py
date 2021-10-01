@@ -6,16 +6,10 @@ import numpy as np
 # ------------------------------------------------------------------------------------------------------------------------#
 # 												Free Parameters									  						  #
 # ------------------------------------------------------------------------------------------------------------------------# 
-path_to_data = "data/"	# location of the data files MAVISIM needs to run (the big PSF, PSF database, the TT jitter map database, the file of weights)
-
-input_file = ascii.read("fornax5_formatted_trim35") # input catalogue to simulate
+input_file = ascii.read("fornax5_formatted_trim0") # input catalogue to simulate
 
 filter = "V" 		 # specify the closest broadband filter to the monochromatic wavelength being studied (e.g. 550nm -> V)
 psf_wavelength = 550 # nm, the wavelength of the PSF database of choice
-fv_psf_path = path_to_data + "PSF_Grid_1ArcSecFoV_75masSampling_Jan2020Code_NoTT_550nm/"												 # Database of field variable PSFs (11 x 11 grid)								
-
-tt_residual_map = "TT_jitter_mavis_astrad10_10_10_angles0_120_240_mag15.0_15.0_15.0_121dirs_sr80.0_80.0_80.0_at1650nm.fits" # tip-tilt residual map to use in the case of a field variable TT kernel
-tt_kernel = 8.0 																											# generic tip-tilt kernel FWHM in mas if the user wants a static tt kernel not derived from the map
 
 noise_mode = "slow"	# detector mode (slow or fast readout)
 
@@ -41,23 +35,10 @@ gauss_wing = 17 	# pixels, size of the wings of the gaussian (centred at xcog, y
 gauss_offset = -0.5 # pixels, offset to make sure the rebinning maintains a centred PSF
 
 # Static Distortion
-static_distort =  ascii.read(path_to_data + "StaticDistortTransmissive")		   # Static distortion map reflecting the contribution of the MAVIS optics
-plate_scale =  1.29 															   # arcsec/mm, to convert location in mm to arcseconds
-dynamic_amp = 1 																   # NOT IN USE, amplification factor to increase the distortion
+static_distort =  ascii.read("data/StaticDistortTransmissive")      # Static distortion map reflecting the contribution of the MAVIS optics
+plate_scale =  1.29                                                 # arcsec/mm, to convert location in mm to arcseconds
+dynamic_amp = 1                                                     # NOT IN USE, amplification factor to increase the distortion
 
-# Field Variable PSF Information
-# -------------------------------------------------------------------------------------------------
-# PSFs created using 0.8" seeing profile and configuration 4 that includes the most recent updates
-# -------------------------------------------------------------------------------------------------
-fv_psf_filename = "PSF_%s_%sdir_arcsec_1arcsec_" + str(psf_wavelength) + "nm.fits" 							# Generic name of FV PSF file for
-fv_psf_grid = np.array([-15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15]) 					# Array of positions where the field variable PSFs are sampled (in arcseconds from centre of FoV at 0, 0)
-theory_core_rad = (40 * psf_wavelength*1e-9)/(2 * 8.0) 								# Guess at where the theoretical control radius should be, assuming MAVIS has 40 subapertures (d) and ctrl_rad = (d * lambda)/2D - Monochromatic for now!
-
-# Handle the cases of different sampling rates for the big PSF and the small PSFS
-psf_core_rad_pix  = int((theory_core_rad  * 206265.0)/psf_sampling)
-seeing_core_rad_pix  = int((theory_core_rad  * 206265.0)/ccd_sampling)
-ramp_size = 2 															# ramp size in pixels to blend the FV PSF into the seeing wings
-                
 # Detector Characteristics
 slow_rdnoise =  3 	# electrons, best
 fast_rdnoise =  5 	# electrons, worst
