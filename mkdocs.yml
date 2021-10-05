@@ -1,0 +1,10 @@
+site_name: MAVISIM
+repo_url: https://github.com/smonty93/MAVISIM/
+site_url: https://example.com
+theme:
+  name: readthedocs
+nav:
+  - Home: 'index.md'
+  - Installing MAVISIM: 'install.md'
+  - 'runningmavisimshort.md'
+  - 'runningmavisim.md'
