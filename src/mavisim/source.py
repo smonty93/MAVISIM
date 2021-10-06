@@ -58,14 +58,13 @@ class Source:
 
 	"""
 
-	def __init__(self, input_par, mavis_src, exp_time, static_dist=False, stat_amp=1.0, tt_amp=1.0):
+	def __init__(self, input_par, exp_time, static_dist=False, stat_amp=1.0, tt_amp=1.0):
 		"""Create a MAVISIM Source data object
 		
 		Args:
 			input_par : 
 		"""
 		self._input_par = input_par
-		self._mavis_src = mavis_src
 		self.exp_time = exp_time
 		self._static_dist_flag = static_dist
 		self._stat_amp = stat_amp
@@ -84,7 +83,7 @@ class Source:
 		""" From the data stored in the object, compute the source data as required
 		"""
 		dtype = np.float64
-		num_stars   = self._mavis_src["X"].shape[0]
+		num_stars   = self._input_par.input_cat["X"].shape[0]
 		self.star   = np.zeros([num_stars],dtype=int)
 		self.flux   = np.zeros([num_stars],dtype=dtype)
 		self.ra     = np.zeros([num_stars],dtype=dtype)
@@ -100,7 +99,7 @@ class Source:
 		self.static_dist = np.zeros([num_stars,2],dtype=dtype)
 		
 		for star in tqdm(range(num_stars)):
-			star_info = self._mavis_src[star]
+			star_info = self._input_par.input_cat[star]
 			self._compute_row(star,star_info)
 
 		self.units = { 

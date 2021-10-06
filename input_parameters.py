@@ -12,7 +12,7 @@ buffer = 10.005 #buffer in arcseconds to add to the MAVIS fov to account for sta
 
 # Input Catalogue info (if relevant)
 # TODO: move to data dir
-nbody_in = ascii.read("../src/mavisim/ngc3201_mavissimim_input0year_imbh_4000stars2_radecFixedFlux")
+input_cat = ascii.read("data/ngc3201_mavissimim_input0year_imbh_4000stars2_radecFixedFlux")
 nbody_yr = 0
 
 # CCD info
@@ -44,7 +44,7 @@ QE = 0.89 		   # for 550nm  --> generalise this
 # Sky Background
 surf_bright = 21.61   # mag/square arcsecond
 # TODO: move this to data dir
-sky_bright =  ascii.read("../src/mavisim/sky_emission.dat")
+sky_bright =  ascii.read("data/sky_emission.dat")
 sky_bright["lambda_nm"].unit = u.nm
 sky_bright["flux"].unit = u.s**(-1) * u.m**(-2) * u.um**(-1) * u.arcsec**(-2)
 airmass =  1.155

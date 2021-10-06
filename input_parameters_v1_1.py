@@ -6,7 +6,7 @@ import numpy as np
 # ------------------------------------------------------------------------------------------------------------------------#
 # 												Free Parameters									  						  #
 # ------------------------------------------------------------------------------------------------------------------------# 
-input_file = ascii.read("fornax5_formatted_trim0") # input catalogue to simulate
+input_cat = ascii.read("data/fornax5_formatted_trim0") # input catalogue to simulate
 
 filter = "V" 		 # specify the closest broadband filter to the monochromatic wavelength being studied (e.g. 550nm -> V)
 psf_wavelength = 550 # nm, the wavelength of the PSF database of choice
