@@ -1,4 +1,3 @@
-from astropy.io import fits
 from astropy.io import ascii
 from astropy import units as u
 import numpy as np
