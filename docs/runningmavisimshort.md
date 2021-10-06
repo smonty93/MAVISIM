@@ -15,20 +15,17 @@ import matplotlib.pyplot as plt
 # Astropy
 from astropy.io import fits, ascii
 
+import mavisim
+
 # This is where our simulation parameters are defined:
 import input_parameters as input_par
-
-# MAVISIM modules and functions required:
-from mavisim.generate_image import ImageGenerator
-from mavisim.source import Source
-from mavisim.noise import add_all_noise
 ```
 
 ## Create the source object (to populate the image)
 Here we define the source objects to be used in the generation of the MAVIS image, as well as the exposure time of the simulated observation.
 ```python
 exp_time = 30 # seconds
-source = Source(input_par, exp_time, static_dist=True)
+source = mavisim.Source(input_par, exp_time, static_dist=True)
 source.build_source()
 ```
 
@@ -43,7 +40,7 @@ This process is summarised in 3 main steps:
 This is usually the longest part of the MAVISIM pipeline, taking about 15 minutes on modest hardware for the ~4000 objects in this example. The duration scales roughly linearly with number of objects. A GPU-optimised CUDA version of this module is under development and is expected to be released very soon. A beta version can be found on the [v1.1dev-gpu](https://github.com/smonty93/MAVISIM/tree/v1.1dev-gpu) branch on Github.
 
 ```python
-image_gen = ImageGenerator(array_width_pix=12800, source=source,
+image_gen = mavisim.ImageGenerator(array_width_pix=12800, source=source,
                             psfs_file="data/e2e_psfs_100s_lqg_optsquare.fits")
 image_gen.main()
 image_final = image_gen.get_rebinned_cropped(rebin_factor=2,cropped_width_as=30.0)
@@ -59,7 +56,7 @@ Here we take the raw noiseless simulated image and pass it through the major sou
 - Read-out noise.
 
 ```python
-image_allnoise = add_all_noise(input_par, image_final, source.exp_time)
+image_allnoise = mavisim.add_all_noise(input_par, image_final, source.exp_time)
 ```
 
 ## Plot/save the final image and input catalogue
