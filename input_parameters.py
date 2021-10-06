@@ -11,7 +11,7 @@ buffer = 10.005 #buffer in arcseconds to add to the MAVIS fov to account for sta
 
 # Input Catalogue info (if relevant)
 # TODO: move to data dir
-input_cat = ascii.read("data/ngc3201_mavissimim_input0year_imbh_4000stars2_radecFixedFlux")
+input_cat = ascii.read("data/example/ngc3201_mavissimim_input0year_imbh_4000stars2_radecFixedFlux")
 nbody_yr = 0
 
 # CCD info
