@@ -18,6 +18,7 @@ nbody_yr = 0
 ccd_size =  4000 # Change this to 4096 for FFT speed
 ccd_sampling = 0.0075 # Pixel/arcsec, should be the same as the sampled FV PSF prior to convolution
 psf_sampling = 0.0075 # Upsampling the PSF to avoid ringing, rebinning happens in code
+psf_wavelength = 550
 
 # Gaussian Point Source Info
 vib_term = 0.48 #0.48 pixels, FWHM = 8.225 mas extra vibration, accounting for the 10mas min FWHM
