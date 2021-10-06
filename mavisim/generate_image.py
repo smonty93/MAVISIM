@@ -368,7 +368,7 @@ class ImageGenerator:
     get_source_list()
         getter function for source list as seen by tile generator
     """
-    def __init__(self, array_width_pix, pixsize, source, psfs_file, gauss_width_pix,
+    def __init__(self, array_width_pix, source, psfs_file, pixsize=3.75e-3, gauss_width_pix=34,
             which_psf = None):        
         """Contructor for ImageGenerator object
 
