@@ -40,29 +40,39 @@ import numpy as np
 from tqdm import tqdm
 
 # Project-specific
-import mavisim.makestaticdistortmap as make_static_map
+from mavisim import make_static_dist_map
 
 class Source:
 	"""
 	The source object allows access to the parameters of each source (star) required
 	to compute the MAVISIM image.
 
-	Usage:
-		source = Source(input_par, mavis_src, exp_time)
-		source.build_source()
-		...
-		print(source.x_pos[star_index])
-		print(np.std(source.static_dist,axis=0))
+	Args:
+		input_par : imported input parameter python file, e.g., `input_parameters.py`.
+		exp_time (`float`): exposure time in seconds to simulate.
+		static_dist (`bool`, optional): if `True`, add static distortion defined in `input_par`.
+		stat_amp (`float`, optional): scaling factor to apply to distortions.
+		tt_amp (`float`, optional): scaling factor to apply to tip-tilt blurring kernel width.
 	
 	Attributes:
-
+		exp_time (`float`): exposure time in seconds to simulate.
+		star (`np.ndarray` of `int`): unique ID of each star.
+		flux (`np.ndarray` of `float`): flux of each star.
+		ra (`np.ndarray` of `float`): RA of each star.
+		dec (`np.ndarray` of `float`): Dec of each star.
+		x_pos (`np.ndarray` of `float`): X position of each star (in arcsec).
+		x_pm (`np.ndarray` of `float`): X proper motion of each star (in pixels).
+		x_dist (`np.ndarray` of `float`): sub-pixel X position shift of each star (in pixels).
+		y_pos (`np.ndarray` of `float`): Y position of each star (in arcsec).
+		y_pm (`np.ndarray` of `float`): Y proper motion of each star (in mas/year).
+		y_dist (`np.ndarray` of `float`): sub-pixel Y position shift of each star (in pixels).
+		gauss_pos (`np.ndarray` of `float`): X/Y-position of each star (in arcsec).
+		gauss_cov (`np.ndarray` of `float`): covariance of Gaussian kernel to simulate tip-tilt blurring (in arcsec^2).
+		static_dist	(`np.ndarray` of `float`): static distortion to apply to each source.
 	"""
 
 	def __init__(self, input_par, exp_time, static_dist=False, stat_amp=1.0, tt_amp=1.0):
 		"""Create a MAVISIM Source data object
-		
-		Args:
-			input_par : 
 		"""
 		self._input_par = input_par
 		self.exp_time = exp_time
@@ -72,7 +82,7 @@ class Source:
 
 		# Add static field distortion to the image?, If so, create the functions necessary to determine the distortion to add
 		if self._static_dist_flag == True:
-			(self._dist_x_func_degmm, self._dist_y_func_degmm) = make_static_map.make_static_dist_map(self._input_par)
+			(self._dist_x_func_degmm, self._dist_y_func_degmm) = make_static_dist_map(self._input_par)
 		else:
 			self._dist_x_func_degmm = self._dist_y_func_degmm = None
 
@@ -101,17 +111,6 @@ class Source:
 		for star in tqdm(range(num_stars)):
 			star_info = self._input_par.input_cat[star]
 			self._compute_row(star,star_info)
-
-		self.units = { 
-			"flux"        : "photons",
-			"x"           : "arcseconds",
-			"x_pm"        : "pixels/year",
-			"x_dist"      : "pixels",
-			"y"           : "arcseconds",
-			"y_pm"        : "pixels/year",
-			"y_dist"      : "pixels",
-			"static_dist" : "pixels"
-		}
 
 	def _compute_row(self, row, star_info):
 		"""
@@ -201,7 +200,11 @@ class Source:
 			return (final_x_dist, final_y_dist, np.asarray([0, 0]))
 
 	def decimate(self, nstar):
-		"""Decimate the list of objects in the object (e.g., for faster simualtions)
+		"""Decimate the list of objects in the object (e.g., for faster simualtions).
+
+		Args:
+			nstar (`int`): number of stars to reduce list down to. The resulting object will
+			only contain the first `nstar` stars.
 		"""
 		if nstar >= self.star.shape[0]:
 			raise ValueError(f"Already less than {nstar:d} stars in catalogue ({self.star.shape[0]:d})")

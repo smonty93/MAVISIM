@@ -1,4 +1,4 @@
-# Running MAVISIM: The Short Version
+# Getting Started With MAVISIM
 
 A simple example script is provided in the form of a Jupyter Notebook in the github repo: `mavisim.ipynb`. Once the data dependencies are downloaded (see [install](install.md) for more info), the notebook can be ran:
 ```bash
@@ -34,6 +34,7 @@ source.build_source()
 
 ## Create the Noise-Free Image with E2E PSF
 This process is summarised in 3 main steps:
+
 - Initialise ImageGenerator object
 - Generate image,
 - Rebin to desired pixel scale.
