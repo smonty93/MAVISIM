@@ -200,6 +200,24 @@ class Source:
 
 			return (final_x_dist, final_y_dist, np.asarray([0, 0]))
 
+	def decimate(self, nstar):
+		"""Decimate the list of objects in the object (e.g., for faster simualtions)
+		"""
+		if nstar >= self.star.shape[0]:
+			raise ValueError(f"Already less than {nstar:d} stars in catalogue ({self.star.shape[0]:d})")
+		self.star        =  self.star[:nstar]
+		self.flux        =  self.flux[:nstar]
+		self.ra          =  self.ra[:nstar]
+		self.dec         =  self.dec[:nstar]
+		self.x_pos       =  self.x_pos[:nstar]
+		self.x_pm        =  self.x_pm[:nstar]
+		self.x_dist      =  self.x_dist[:nstar]
+		self.y_pos       =  self.y_pos[:nstar]
+		self.y_pm        =  self.y_pm[:nstar]
+		self.y_dist      =  self.y_dist[:nstar]
+		self.gauss_pos   =  self.gauss_pos[:nstar]
+		self.gauss_cov   =  self.gauss_cov[:nstar]
+		self.static_dist =  self.static_dist[:nstar]
 
 	def _find_covmat(self):
 		"""
