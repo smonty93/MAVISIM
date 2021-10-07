@@ -11,6 +11,7 @@ cd mavisim
 
 In the root directory of the cloned git repository, an example Jupyter Notebook `mavisim.ipynb` can be found, which by default simulates the system defined in `input_parameters.py`. To run this notebook:
 ```bash
+cd example
 jupyter notebook mavisim.ipynb
 ```
 
@@ -25,7 +26,7 @@ For installing specific (e.g., legacy) versions, one can install from a previous
 pip install "mavisim>=1.0,<1.1" 
 ```
 
-## Explicity Version From Github
+## Explicit Version From Github
 For beta-releases/dev branches, it is possible to install MAVISIM directly from a github:
 ```bash
 pip install "git+https://github.com/smonty93/MAVISIM@[branch or tag]"
