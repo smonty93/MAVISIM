@@ -7,4 +7,7 @@ nav:
   - Home: 'index.md'
   - Installing MAVISIM: 'install.md'
   - 'runningmavisimshort.md'
-  - 'runningmavisim.md'
+  - Modules:
+    - 'sources/generate_image.md'
+    - 'sources/source.md'
+    - 'sources/util.md'

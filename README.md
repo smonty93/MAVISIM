@@ -1,15 +1,9 @@
-# MAVISIM 1.0
+# MAVISIM
 Image simulating tool for the next generation ESO instrument MAVIS. 
 
-1. <b>Documentation can be found on <a href="https://mavisim.readthedocs.io/en/latest/" target="_blank"> readthedocs</a></b>
-
-2. <b>To run MAVISIM 1.0 you'll need to download the data directory from: <a href="http://www.mso.anu.edu.au/~montys/MAVISIM1/" target="_blank"> here.</a></b>
-    1. A helper script has been included to fetch this data. Assuming wget is available, the following should download the required data to MAVISIM/data:
-    ```python
-    ./download_data.sh
-    ```
-
-3. **Checkout the `example` directory for a MAVISIM walkthrough**
+## Versions
+1.0 - Fourier PSF
+1.1 - EtE PSF, faster
 
 ## Current Capabilities
 1. Able to simulate full stellar field (eg. Milky Way Globular Cluster) from an input physical catalogue

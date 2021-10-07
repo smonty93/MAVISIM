@@ -1,0 +1,22 @@
+sources_dir: docs/sources
+templates_dir: docs/templates
+repo: https://github.com/smonty93/mavisim  #link to sources on github
+version: v1.1dev                           #link to sources on github
+
+pages:
+  - page: "generate_image.md"
+    source: "mavisim/generate_image.py"
+    classes: 
+      - PSF
+      - TileGenerator
+      - ImageGenerator
+  - page: "source.md"
+    source: "mavisim/source.py"
+    classes:
+      - Source
+  - page: "util.md"
+    source: "mavisim/util.py"
+    functions: 
+      - input_coo
+      - add_all_noise
+      - make_static_dist_map

@@ -1,66 +1,78 @@
-# Running MAVISIM 1.0: The Short Version
+# Getting Started With MAVISIM
 
-## Specifications
-To create an image of a point source catalogue with the default settings, only a subset of settings must be specified. In the `input_parameter.py` file please edit the following:
+A simple example script is provided in the form of a Jupyter Notebook in the github repo: `mavisim.ipynb`. Once the data dependencies are downloaded (see [install](install.md) for more info), the notebook can be ran:
+```bash
+jupyter notebook mavisim.ipynb
+```
+Going through each section of this notebook illustrates the intended use of MAVISIM.
 
-- `path_to_data`: full path to the location of the mavisim data files (e.g. the PSF database)
-- `input_file`: name of the input source catalogue (e.g. nbody file)
-- `fv_psf_path`: name of the PSF database (assuming it's stored in the data directory)
-- `filter`: the closest broad band filter to the simulation wavelength (recall Version 1.0 is monochromatic), choices are UBVRI
-- `psf_wavelength`: PSF database wavelength
-- `static_psf`: name of the preferred PSF to use for the static PSF case (no field variability)
-- `tt_residual_map`: name of the tip-tilt residual map to use for the spatially variable tip-tilt case
-- `tt_kernel`: FWHM in mas of a user-specified tip-tilt kernel
-
-The other settings to specify are made when calling the `Source` and `AOGaussGrid` classes. These are as follows:
-
-In the `Source` class:
-
-- **`static_dist`** controls whether static distortion from the MAVIS optics is included (=`True`) in the simulation or not (=`False`). Default value is `False`.
-- **`stat_amp`** controls the magnitude of the static distortion. Change this value to increase the distortion by a scalar in both the x- and y-direction. Default value is 1.0 (no amplification)
-- **`tt_var`** controls whether the *spatial variability* of the tip-tilt residual error is included (=`True`) or not (=`False`). The choice of map is specified in the `input_parameters` file. Default value is `False`.
-- **`user_tt`** specifies whether the user would like **fix the tip-tilt residual error** as a specific value described by a single Gaussian kernel. This option only works when the tip-tilt residual is *static* (`tt_var=False`). The user specifies the value of the residual in the `input_parameter` file as the `tt_kernel` parameter. Default value is `False`.
-- **`tt_amp`** controls the magnitude of the tip-tilt residual error. Default value is 1.0 (no amplification)
-
-In the `AOGaussGrid` class:
-
-- **`fv_psf`** controls whether the high-order PSF is spatially variable or not. This is one of the main characteristics that makes MCAO images unique. 
-
-## Commands to Create an Image
-The following set of commands will create a MAVISIM image. These can also be found in the `/example` directory on the <a href="https://github.com/smonty93/MAVISIM" target="_blank">MAVISIM Github repository.</a>
-
-### Creating a MAVISIM image
-
+## Imports
 ```python
-# Imports
-import mavisim.input_parameters as input_par
-from mavisim.Source import Source
-from mavisim.AOGaussGrid import AOGaussGrid
-from mavisim.SeeingGrid import SeeingGrid
-from mavisim.addnoise import add_all_noise
+# Standard
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Load the input source file
-glob_clust = input_par.input_file
-exp_time = 30 # seconds
-	
-# Create the Source object with default static distortion and spatially variable tip-tilt error
-source = Source(input_par, glob_clust, exp_time, static_dist=True, tt_var=True).main()
+# Astropy
+from astropy.io import fits, ascii
 
-# Create the AOGrid and GaussGrid objects with a spatially variable high-order PSF
-(ao_field, gauss_field) = AOGaussGrid(input_par, source, fv_psf=True).main()
+import mavisim
 
-# Create the seeing field to add the PSF wings
-seeing_field = SeeingGrid(input_par, gauss_field).main()
-
-# Create a Noise-Free Image
-image = ao_field + seeing_field
-
-# Create the Final Image
-final_image = add_all_noise(input_par, image, source.meta["exp_time"])
-
-# Optional: Create an Astropy Table of the Input Positions
-input_coo = InputCoo(input_par, source, trim_cat=True).main()
+# This is where our simulation parameters are defined:
+import input_parameters as input_par
 ```
 
-A fits file can be created using the data from the final image.
+## Create the source object (to populate the image)
+Here we define the source objects to be used in the generation of the MAVIS image, as well as the exposure time of the simulated observation.
+```python
+exp_time = 30 # seconds
+source = mavisim.Source(input_par, exp_time, static_dist=True)
+source.build_source()
+```
 
+## Create the Noise-Free Image with E2E PSF
+This process is summarised in 3 main steps:
+
+- Initialise ImageGenerator object
+- Generate image,
+- Rebin to desired pixel scale.
+
+
+This is usually the longest part of the MAVISIM pipeline, taking about 15 minutes on modest hardware for the ~4000 objects in this example. The duration scales roughly linearly with number of objects. A GPU-optimised CUDA version of this module is under development and is expected to be released very soon. A beta version can be found on the [v1.1dev-gpu](https://github.com/smonty93/MAVISIM/tree/v1.1dev-gpu) branch on Github.
+
+```python
+image_gen = mavisim.ImageGenerator(array_width_pix=12800, source=source,
+                            psfs_file="data/e2e_psfs_100s_lqg_optsquare.fits")
+image_gen.main()
+image_final = image_gen.get_rebinned_cropped(rebin_factor=2,cropped_width_as=30.0)
+
+print (image_final.shape)
+# (4000,4000)
+```
+
+## Add all noise
+Here we take the raw noiseless simulated image and pass it through the major sources of noise:
+- Sky background,
+- Photon noise,
+- Read-out noise.
+
+```python
+image_allnoise = mavisim.add_all_noise(input_par, image_final, source.exp_time)
+```
+
+## Plot/save the final image and input catalogue
+```python
+image_final_noise = np.array(image_allnoise, dtype="float32")
+
+# plot final image:
+extent = 42*np.array([-0.5,0.5,-0.5,0.5])
+plt.figure(figsize=[10,10])
+plt.imshow(image_final_noise, extent=extent)
+plt.colorbar()
+plt.clim([0,10000])
+
+hdu = fits.PrimaryHDU(image_final_noise)
+hdul = fits.HDUList([hdu])
+hdul.writeto("output_image_001.fits", overwrite=True)
+```
+
+![png](output_13_0.png)

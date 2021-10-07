@@ -1,44 +1,36 @@
 # Installation
 
-## Current Version (MAVISIM 1.1)
-
-MAVISIM is not currently uploaded to the Python Package Index and thus must be installed from source. The current version of MAVISIM can be installed via pip using the following command:
-
+## Standard
+For most users, the following should be sufficient to install MAVISIM and download the data dependencies:
 ```bash
-pip install "git+https://github.com/smonty93/MAVISIM.git"
-```
-
-## Older Version (MAVISIM 1.0)
-The following should be sufficient in most cases to install MAVISIM 1.0:
-
-```bash
-pip install "git+https://github.com/smonty93/MAVISIM.git@v1.0"
-```
-
-[]: # Older code to install
-[]: #```bash
-[]: #git clone https://github.com/smonty93/MAVISIM.git
-[]: #cd MAVISIM
-[]: #pip install .
-[]: #```
-
-## Data Dependencies
-
-## 
-
-To run MAVISIM 1.0 you'll need to download the `data` directory from <a href="http://www.mso.anu.edu.au/~montys/MAVISIM1/" target="_blank">this link.</a>. It contains the database of field variable Fourier PSFs at 550nm and other useful data including an example.
-
-A helper script has been included to fetch this data. Assuming `wget` is available, the following should download the required data to `MAVISIM/data`:
-```bash
+pip install mavisim
+git clone https://github.com/smonty93/mavisim
+cd mavisim
 ./download_data.sh
 ```
 
-### External Dependencies
+In the root directory of the cloned git repository, an example Jupyter Notebook `mavisim.ipynb` can be found, which by default simulates the system defined in `input_parameters.py`. To run this notebook:
+```bash
+jupyter notebook mavisim.ipynb
+```
 
-MAVISIM was written for **Python 3** and relies on the following packages with the listed version being the tested version.
+## Explicit Version From PyPI
 
-| Package     | Tested Version |
-| -----------  | ----------- |
-| Numpy      |   1.16.5    |
-| Astropy      | 2.0.9    |
-| Scipy | 1.2.1  |
+The latest stable version of MAVISIM can be directly installed via the Python Package Index:
+```bash
+pip install mavisim
+```
+For installing specific (e.g., legacy) versions, one can install from a previous `pip` release, e.g., to install `v1.0.x`:
+```bash
+pip install "mavisim>=1.0,<1.1" 
+```
+
+## Explicity Version From Github
+For beta-releases/dev branches, it is possible to install MAVISIM directly from a github:
+```bash
+pip install "git+https://github.com/smonty93/MAVISIM@[branch or tag]"
+```
+e.g., for version `v1.0.2`:
+```bash
+pip install "git+https://github.com/smonty93/MAVISIM@v1.0.2"
+```
