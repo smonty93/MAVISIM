@@ -25,8 +25,7 @@ Documentation can be found <a href="https://mavisim.readthedocs.io/en/v1.0.3/" t
 # Future Versions
 
 ## MAVISIM 1.2: Broadband End-to-End PSF
-Differences:
-1. Broadband images! Starting with the V band
+Broadband images! Starting with the V band
 
 ## MAVISIM 2.0
 Extended object version, not yet in development.
