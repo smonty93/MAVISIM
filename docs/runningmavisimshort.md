@@ -1,6 +1,6 @@
 # Getting Started With MAVISIM
 
-A simple example script is provided in the form of a Jupyter Notebook in the github repo: `mavisim.ipynb`. Once the data dependencies are downloaded (see [install](install.md) for more info), the notebook can be ran:
+A simple example script is provided in the downloaded data dependencies, in the form of a Jupyter Notebook `mavisim.ipynb`. Once the data dependencies are downloaded (see [install](install.md) for more info), the notebook can be ran:
 ```bash
 jupyter notebook mavisim.ipynb
 ```
@@ -40,8 +40,9 @@ This process is summarised in 3 main steps:
 This is usually the longest part of the MAVISIM pipeline, taking about 15 minutes on modest hardware for the ~4000 objects in this example. The duration scales roughly linearly with number of objects. A GPU-optimised CUDA version of this module is under development and is expected to be released very soon. A beta version can be found on the [v1.1dev-gpu](https://github.com/smonty93/MAVISIM/tree/v1.1dev-gpu) branch on Github.
 
 ```python
-image_gen = mavisim.ImageGenerator(array_width_pix=12800, source=source,
-                            psfs_file="data/e2e_psfs_100s_lqg_optsquare.fits")
+image_gen = mavisim.ImageGenerator(
+    array_width_pix=12800, source=source,
+    psfs_file="../data/e2e_psfs_100s_lqg_optsquare.fits")
 image_gen.main()
 image_final = image_gen.get_rebinned_cropped(rebin_factor=2,cropped_width_as=30.0)
 
