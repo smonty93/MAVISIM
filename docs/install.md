@@ -1,16 +1,11 @@
 # Installation
 
 ## Standard
-For most users, the following should be sufficient to install MAVISIM and download the data dependencies:
+For most users, the following should be sufficient to install MAVISIM, download the data dependencies, and run the example notebook:
 ```bash
 pip install mavisim
-git clone https://github.com/smonty93/mavisim
-cd mavisim
-./download_data.sh
-```
-
-In the root directory of the cloned git repository, an example Jupyter Notebook `mavisim.ipynb` can be found, which by default simulates the system defined in `input_parameters.py`. To run this notebook:
-```bash
+wget https://www.mso.anu.edu.au/~montys/mavisim_data/v1_1.tar.gz
+tar -xzvf v1_1.tar.gz
 cd example
 jupyter notebook mavisim.ipynb
 ```
