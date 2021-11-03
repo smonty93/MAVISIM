@@ -14,9 +14,15 @@ AstromCalibSim(
 ---
 Astrometric Calibration Simulator for MAVIS.
 
-Takes in an astropy-parsed distortion field with the appropriate headers (see
-below), and performs a simulated astrometric calibration process. Allows the 
-evaluation of input, recovered, and residual distortion fields.
+MAVIS will feature an astrometric calibration mask characterise the static
+distortions present in the MAVIS system. This simulator allows one to quantify
+the performance of that mask for a given distortion field, using the nominal
+astrometric calibration identification algorithms intended for MAVIS.
+
+The constructor takes in an astropy-parsed distortion field with the appropriate 
+headers (see below), and performs a simulated astrometric calibration process. 
+The public methods allow the evaluation of input, recovered, and residual 
+distortion fields.
 
 Static distortion file should have at least the following columns:
 ```    
@@ -53,7 +59,7 @@ static_distort = ascii(distort_file)
 
 
 ### .input_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L58)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L64)
 ```python
 .input_dist(
    x, y
@@ -77,7 +83,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .recovered_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L84)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L90)
 ```python
 .recovered_dist(
    x, y
@@ -103,7 +109,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .residual_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L112)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L118)
 ```python
 .residual_dist(
    x, y

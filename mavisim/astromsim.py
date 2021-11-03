@@ -298,7 +298,7 @@ class AstromCalibSim():
             
             Arguments:
                 p: np.ndarray : position to evaluate polynomial gradient at, (2,) or (M,2)
-                N: int: maximum homogenous polynomial order to go to.
+                n_poly: int: maximum homogenous polynomial order to go to.
 
             Returns:
                 out: np.ndarray : evaluated polynomial gradient,
@@ -343,7 +343,7 @@ class AstromCalibSim():
         n_pos = nominal_pos.shape[0]
 
         d_mat = np.zeros([4*n_pos,2*n_tot])
-        grad_tmp = hbvpoly_grad(nominal_pos,n_pos)
+        grad_tmp = hbvpoly_grad(nominal_pos,n_poly)
 
         d_mat[0::4,:n_tot]   = grad_tmp[0]
         d_mat[1::4,n_tot:]   = grad_tmp[0]
