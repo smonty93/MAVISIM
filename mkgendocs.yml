@@ -14,6 +14,10 @@ pages:
     source: "mavisim/source.py"
     classes:
       - Source
+  - page: "astromsim.md"
+    source: "mavisim/astromsim.py"
+    classes:
+      - AstromCalibSim
   - page: "util.md"
     source: "mavisim/util.py"
     functions: 
