@@ -6,7 +6,8 @@
 ```python 
 AstromCalibSim(
    static_distort, centroid_noise_std = 1e-05, hole_position_std = 0.01, dx = 0.2,
-   dy = 0.2, n_poly = 6
+   dy = 0.2, n_poly = 6, pin_pitch = 0.5, num_pin_x = 30, mask_scale = 1000.0/582,
+   pixel_size_as = 0.00736, pixel_size_mm = 0.01
 )
 ```
 
@@ -43,11 +44,21 @@ static_distort = ascii(distort_file)
 **Args**
 
 * **static_distort**  : astropy table : table containing the distortions across the field
-* **centroid_noise_std**  : float : standard deviation of Gaussian noise applied to centroids.
-* **hole_position_std**  : float : standard deviation of manufacturing error on hole positions.
-* **dx**  : float : shift applied in x direction for calibration process.
-* **dy**  : float : shift applied in y direction for calibration process.
+* **centroid_noise_std**  : float : standard deviation of Gaussian noise applied to centroids (arcsec).
+* **hole_position_std**  : float : standard deviation of manufacturing error on hole positions (mm).
+* **dx**  : float : shift applied in x direction for calibration process (mm).
+* **dy**  : float : shift applied in y direction for calibration process (mm).
 * **n_poly**  : int : maximum order of homogenous bivariate polynomial used to fit distortions.
+* **pin_pitch**  : float : distance between pins at input plane (mm).
+* **num_pin_x**  : int : number of pins across the x-dimension (sqrt(num_pins_total)).
+* **mask_scale**  : float : arcsec/mm at input plane.
+* **pixel_size_as**  : float : pixel size in arcsec of imager camera.
+* **pixel_size_mm**  : float : physical pixel size in mm of imager camera.
+
+
+
+
+
 
 
 
@@ -59,7 +70,7 @@ static_distort = ascii(distort_file)
 
 
 ### .input_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L64)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L76)
 ```python
 .input_dist(
    x, y
@@ -83,7 +94,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .recovered_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L90)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L102)
 ```python
 .recovered_dist(
    x, y
@@ -109,7 +120,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .residual_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L118)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L130)
 ```python
 .residual_dist(
    x, y

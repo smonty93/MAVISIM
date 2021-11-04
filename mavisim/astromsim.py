@@ -33,24 +33,36 @@ class AstromCalibSim():
     Args:
         static_distort : astropy table : table containing the distortions across the field
         
-        centroid_noise_std : float : standard deviation of Gaussian noise applied to centroids.
+        centroid_noise_std : float : standard deviation of Gaussian noise applied to centroids (arcsec).
         
-        hole_position_std  : float : standard deviation of manufacturing error on hole positions.
+        hole_position_std  : float : standard deviation of manufacturing error on hole positions (mm).
         
-        dx : float : shift applied in x direction for calibration process.
+        dx : float : shift applied in x direction for calibration process (mm).
         
-        dy : float : shift applied in y direction for calibration process.
+        dy : float : shift applied in y direction for calibration process (mm).
         
         n_poly : int : maximum order of homogenous bivariate polynomial used to fit distortions.
+
+        pin_pitch : float : distance between pins at input plane (mm).
+
+        num_pin_x : int : number of pins across the x-dimension (sqrt(num_pins_total)).
+
+        mask_scale : float : arcsec/mm at input plane.
+
+        pixel_size_as : float : pixel size in arcsec of imager camera.
+
+        pixel_size_mm : float : physical pixel size in mm of imager camera.
     """
     def __init__(self, static_distort, centroid_noise_std=10e-6,
-                hole_position_std=1e-2, dx=0.2, dy=0.2, n_poly=6):
-        self.mask_scale = 1e3/582.                       # arcsec/mm at input plane
-        self._init_cam_samp = 0.00736                    # arcsec/pixel at output plane
-        self._pin_pitch = 0.5                            # mm at input plane
-        self._num_pins = 900                             # 30x30 pinholes
-        self._plate_scale = self._init_cam_samp / 10e-3  # arcsec/mm at output plane
-        self.static_distort = static_distort             # static distortion data
+                hole_position_std=1e-2, dx=0.2, dy=0.2, n_poly=6, pin_pitch=0.5,
+                num_pin_x=30, mask_scale=1e3/582, pixel_size_as=0.00736, 
+                pixel_size_mm=10e-3):
+        self.mask_scale = mask_scale                           # arcsec/mm at input plane
+        self._init_cam_samp = pixel_size_as                    # arcsec/pixel at output plane
+        self._pin_pitch = pin_pitch                            # mm at input plane
+        self._num_pins = num_pin_x**2                          # 30x30 pinholes
+        self._plate_scale = self._init_cam_samp/pixel_size_mm  # arcsec/mm at output plane
+        self.static_distort = static_distort                   # static distortion data
         
         # Process input distortions into interpolated evaluatable function
         self._input_distortions_func = self._input_distortions()
@@ -242,7 +254,7 @@ class AstromCalibSim():
             return np.c_[pin_eff_x_arcsec.flatten(),
                          pin_eff_y_arcsec.flatten()]
 
-        def get_nominal_pos(xshift=0.0,yshift=0.0,sigma=None):
+        def get_nominal_pos(xshift=0.0,yshift=0.0):
             """
             xshift,yshift in mm
             """
@@ -256,13 +268,6 @@ class AstromCalibSim():
             #apply any shift terms
             pin_grid_x_mm += xshift
             pin_grid_y_mm += yshift
-            #include uncertainty in hole position
-            if sigma is not None:
-                rng = np.random.default_rng(int(10*xshift))
-                perturb = rng.multivariate_normal([0,0], [[1,0],[0,1]], pin_grid_x_mm.shape)
-                
-                pin_grid_x_mm += perturb[:,:,0]*sigma
-                pin_grid_y_mm += perturb[:,:,1]*sigma
 
             pin_eff_x_arcsec = pin_grid_x_mm * self.mask_scale
             pin_eff_y_arcsec = pin_grid_y_mm * self.mask_scale
@@ -367,4 +372,4 @@ class AstromCalibSim():
         #        "d_estimate" : np.c_[hbvpoly(nominal_pos,u_hat[:N_tot],N),hbvpoly(nominal_pos,u_hat[N_tot:],N)]}
         
         return lambda x,y: np.c_[hbvpoly(np.c_[x,y],u_hat[:n_tot],n_poly),
-                                hbvpoly(np.c_[x,y],u_hat[n_tot:],n_poly)]
+                                 hbvpoly(np.c_[x,y],u_hat[n_tot:],n_poly)]
