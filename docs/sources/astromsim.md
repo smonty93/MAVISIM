@@ -66,11 +66,18 @@ static_distort = ascii(distort_file)
 
 
 
+**Attributes**
+
+* **mask_scale**  : float : arcsec/mm at input plane.
+* **static_distort**  : astropy.Table : static distortion input table
+
+
+
 **Methods:**
 
 
 ### .input_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L76)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L81)
 ```python
 .input_dist(
    x, y
@@ -94,7 +101,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .recovered_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L102)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L107)
 ```python
 .recovered_dist(
    x, y
@@ -120,7 +127,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .residual_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L130)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L135)
 ```python
 .residual_dist(
    x, y

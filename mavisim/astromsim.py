@@ -52,6 +52,11 @@ class AstromCalibSim():
         pixel_size_as : float : pixel size in arcsec of imager camera.
 
         pixel_size_mm : float : physical pixel size in mm of imager camera.
+
+    Attributes:
+        mask_scale : float : arcsec/mm at input plane.
+
+        static_distort : astropy.Table : static distortion input table
     """
     def __init__(self, static_distort, centroid_noise_std=10e-6,
                 hole_position_std=1e-2, dx=0.2, dy=0.2, n_poly=6, pin_pitch=0.5,
