@@ -302,7 +302,7 @@ class ImageGenerator:
         rebinned_im = self._rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
         return rebinned_im.cpu()
 
-    def rebin(self, arr, new_shape):
+    def _rebin(self, arr, new_shape):
         """Rebin array (arr) into new shape (new_shape)."""
         shape = (new_shape[0], arr.shape[0] // new_shape[0],
                  new_shape[1], arr.shape[1] // new_shape[1])
