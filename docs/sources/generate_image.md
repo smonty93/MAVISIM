@@ -226,14 +226,3 @@ Note that no checking is done on the validity of this, so use with care.
 
 * **rebinned_im** (real-valued `np.ndarray`) : complete image, rebinned and cropped. 
 
-
-### .rebin
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L305)
-```python
-.rebin(
-   arr, new_shape
-)
-```
-
----
-Rebin array (arr) into new shape (new_shape).
