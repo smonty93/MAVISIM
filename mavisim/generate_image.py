@@ -11,30 +11,26 @@ def tensor(array):
     return torch.tensor(array,device=device)
 
 class PSF:
-    """
-    PSF object class.
+    """PSF object class.
 
-    ...
+    Helper class to handle PSF data.
     
-    Attributes
-    ----------
-    fft_data : np.array
-        array storing the (minimal) rfft2 data of the given PSF
-    xpos : float
-        x-position of PSF point source in arcsec
-    ypos : float
-        y-position of PSF point source in arcsec
-    Lambda : float
-        wavelength used to capture the PSF
+    Args:
+        fits_ext (`astropy.io.fits`): opened fits file containing PSF data and required
+        header data (XPOS,YPOS,LAMBDA).
+        padto (`list` of `int`): shape of desired Fourier transform array.
+        dtype (`np.dtype`, optional): desired complex dtype of Fourier array.
 
-    Methods
-    -------
-    N/A
-
+    Attributes:
+        fft_data (`np.ndarray`): array storing the (minimal) rfft2 data of the given PSF.
+        xpos (`float`): x-position of PSF point source in arcsec.
+        ypos (`float`): y-position of PSF point source in arcsec.
+        Lambda (`float`): wavelength used to capture the PSF.
     """
 
     def __init__(self, fits_ext, padto, *, dtype=np.float64):
-        """Init PSF and perform RFFT2"""
+        """Init PSF and perform RFFT2
+        """
         self.fft_data = fft.rfft2(torch.tensor(fits_ext.data.astype(dtype),device=device),s=padto.tolist())
         self.xpos     = fits_ext.header["YPOS"]
         self.ypos     = fits_ext.header["XPOS"]
@@ -44,65 +40,24 @@ class TileGenerator:
     """
     Object for generating tiles to be sliced into final image.
 
-    ...
+    Args:
+        source (`Source` object): Object containing all of the source data, as defined in `Source.py`.
+        psfs_file (`str`): path to `.fits` file containing all PSFs and metadata.
+        gauss_width_pix (`int`): support size in pixels to build the Gaussian star kernel.
+        dtype (`np.dtype`, optional): complex data type to work with in DFT space.
+        which_psf (`int`, optional): If specified, use fits HDU[which_psf+1] PSF only.
 
-    Attributes
-    ----------
-    source : List
-        source list of objects, each with 3 elements:
-            [0] -> flux
-            [1] -> position [arcsec]
-            [2] -> gaussian covariance [arcsec^2]
-    psfs : List
-        list of PSF objects (see PSF class)
-    pixsize : float
-        pixel size in arcsec used to build tile
-    gauss_width_pix : int
-        width of Gaussian square support in pixels
-    gauss_width_as : float
-        width of Gaussian square support in arcsec (edge to edge)
-    gauss_dim : int ndarray
-        shape of Gaussian square support
-    psf_file : str
-        fits filename storing all PSFs + PSF metadata
-    psf_pitch : float
-        gap between adjacent PFSs on square field grid
-    psf_width_pix : int
-        width of PSF square support in pixels
-    psf_width_as : float
-        width of PSF square support in arcsec (edge to edge)
-    fourier_tile_dim : int ndarray
-        shape of tile before cropping
-    static : bool
-        True -> use static PSF
-        False -> use field variable PSF
-    dtype : np.dtype
-        dtype of all large arrays
-
-    Methods
-    -------
-
+    Attributes:
+        source (`Source` object): collection of sources in `Source`-type object.
+        psfs (`list` of `PSF` objects): list of PSF objects (see PSF class).
+        pixsize (`float`): pixel size in arcsec used to build tile.
+        gauss_width_pix (`int`): width of Gaussian square support in pixels
+        static (`bool`) : if `True`, use a static PSF, otherwise use field variable PSF.
     """
     
     def __init__( self, source, psfs_file, gauss_width_pix, *,
              dtype = np.complex128, which_psf = None):
         """Initialise tile generator object by preparing source list and PSFs
-
-        ...
-        
-        Parameters
-        ----------
-        source_list : List
-            table of sources as output by Source.py
-        psfs_file : str
-            fits file containing all PSFs and PSF metadata
-        gauss_width_pix: int
-            support size in pixels to build the Gaussian star kernel
-        dtype : np.dtype, optional
-            complex data type to work with in DFT space
-        which_psf : int, optional
-            default value (None) -> use field varying PSFs
-            otherwise -> use fits HDU[which_psf+1] PSF only
         """
         
         self.dtype=dtype
@@ -159,12 +114,8 @@ class TileGenerator:
         on square grid). The resulting effective PSF is added to the 
         internal _psf_array to be used in the get_tile pipeline.
 
-        ...
-        
-        Parameters
-        ----------
-        star_pos : np.ndarray : position [arcsec]
-        
+        Args:
+            star_pos (`np.ndarray`) : position [arcsec].
         """
         
         if self.static == True:
@@ -191,7 +142,6 @@ class TileGenerator:
     def get_tile(self,index):
         """Get the tile corresponding to source[index]
 
-
         From the tile_generator object tgen, calling tgen.get_tile(index) will
         generate the tile corresponding to the tgen.source_pos[index] star by 
         interpolating the 4 neighbouring PSFs and convolving this effective
@@ -201,21 +151,12 @@ class TileGenerator:
         PSF dimensions, as well as the coordinates of the bottom-left-corner
         of the tile so that it may be sliced into the final image properly.
         
-        ...
+        Args:
+            index (`int`): index of star in source table to generate tile for.
 
-        Parameters
-        ----------
-        index : int
-            index of star in source table to generate tile for
-
-        Returns
-        -------
-        out : real ndarray
-            tile to be sliced into final image
-        bottom_left_corner : ndarray
-            coordinates of bottom left corner of bottom left pixel in arcsec
-        timing : dict
-            dictionary with timing for various parts of program
+        Returns:
+            out (real-valued `np.ndarray`): tile to be sliced into final image
+            bottom_left_corner (`np.ndarray`): coordinates of bottom left corner of bottom left pixel in arcsec
         """
         
         if self._init == True:
@@ -241,9 +182,6 @@ class TileGenerator:
             self._init = False
         
         # Pick star from source table
-        #star_flux = tensor(self.source_flux[index])
-        #star_pos  = tensor(self.source_pos[index])
-        #star_cov  = tensor(self.source_cov[index])
         star_flux = self.source_flux[index]
         star_pos  = self.source_pos[index]
         star_cov  = tensor(self.source_cov[index])
@@ -252,7 +190,7 @@ class TileGenerator:
         self._psf_array *= 0.0
 
         # Compute effective PSF:
-        self.get_effective_psf_fft(self.source_pos[index])
+        self.get_effective_psf_fft(star_pos)
 
         # Prepare for FFT Gaussian computation:
         offset = (((((star_pos % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
@@ -273,32 +211,17 @@ class TileGenerator:
     def get_star_kernel_fft(self, flux, cov, mu):
         """Compute star Gaussian based in DFT space.
 
-        Directly computes the FFT of the Gaussian kernel with
-        appriate amplitude, width, and offset to suit the tile
-        being generated.
-
-        Uses optimised np.einsum so requires running:
-            optimize_star_kernel()
-        first.
-
-        FFT description of shifted Gaussian given by:
-            TBD
-        ...
-
-        Inputs
-        ------
-        flux : float
-            flux of star
-        cov : np.ndarray
-            covariance matrix of star Gaussian
-        mu : np.ndarray
-            position of star
-
-        Output
-        ------
-        gaussian_fft : ndarray
+        Directly computes the FFT of the Gaussian kernel with appriate amplitude, 
+        width, and offset to suit the tile being generated.
 
 
+        Args:
+            flux (`float`): flux of star.
+            cov (`np.ndarray`): covariance matrix of star Gaussian.
+            mu (`np.ndarray`): position of star.
+
+        Returns:
+            gaussian_fft (`np.ndarray`): star Gaussian kernel in FFT space.
         """
         offset = tensor((2*np.pi*1j)*mu)
         gaussian_fft = (flux*(self._nx**2/self._T**2)*2*np.pi*np.sqrt(np.linalg.det(cov.cpu())))*torch.exp(
@@ -315,63 +238,31 @@ class TileGenerator:
         # TODO brute force normalise. Was an error of about 0.2% last I checked.
         return gaussian_fft
     
-    
+
 
 class ImageGenerator:
+    """Generate image from sliced tiles, one tile per source object.
+
+    This is the core object to work with when generating a MAVISIM image from
+    a `Source` object.
+
+    Args:
+        array_width_pix (`int`): width of full image in pixels before rebinning.
+        pixsize (`float`): pixel size in arcsec before rebinning.
+        source (`Source` object): source list as `Source`-type object
+        psfs_file (`str`): filename for fits file containing all PSFs and PSF metadata.
+        gauss_width_pix (`int`): width of Gaussian square support in pixels.
+        which_psf (`int`, optional): If specified, use fits HDU[which_psf+1] PSF only.
+    
+    Attributes:
+        pixsize (`float`): pixel size in arcsec of image.
+        fov (`float`): FoV of full image.
+        full_image (real-valued `np.ndarray`): final image at original pixel size (i.e., before rebinning).
+        tile_gen (`TileGenerator` object): tile generator object used to create tiles to slice into final image.
     """
-    Generate image from sliced tiles, one tile per source object.
-
-    Usage:
-
-
-    ...
-
-    Attributes
-    ----------
-    pixsize : float
-        pixel size in arcsec of image
-    fov : float
-        FoV of full image
-    full_image : real ndarray
-        final image at original pixel size (i.e., before rebinning)
-    tile_gen : TileGenerator
-        tile generator object used to create tiles to slice into final image
-
-
-    Methods
-    -------
-    main()
-        generates the full image and saves it to attribute self.full_image
-    get_rebinned_cropped(rebin_factor, cropped_width_as)
-        rebin the image in self.full_image by a rebin factor (rebin_factor), and 
-        crop to a specified FoV (cropped_width_as)
-    rebin(arr, new_shape)
-        rebin an array (arr) into new_shape. new_shape must be achievable
-        by an integer rebinning.
-    get_source_list()
-        getter function for source list as seen by tile generator
-    """
-    def __init__(self, array_width_pix, pixsize, source, psfs_file, gauss_width_pix,
+    def __init__(self, array_width_pix, source, psfs_file, pixsize=3.75e-3, gauss_width_pix=34,
             which_psf = None):        
         """Contructor for ImageGenerator object
-
-        ...
-
-        Parameters
-        ----------
-        array_width_pix : int
-            width of full image in pixels before rebinning
-        pixsize : float
-            pixel size in arcsec before rebinning
-        source_list : table
-            source list table from Source.py format
-        psfs_file : str
-            filename for fits file containing all PSFs and PSF metadata
-        gauss_width_pix : int
-            width of Gaussian square support in pixels
-        which_psf : int, optional
-            default = None -> use variable PSF over field
-            otherwise -> use fits HDU[which_psf+1] PSF only
         """
 
         self.pixsize = pixsize
@@ -383,7 +274,8 @@ class ImageGenerator:
         self.nsource = source.flux.shape[0]
         
     def main(self):
-        """Loop over all stars and add the tile to the full image."""
+        """Loop over all stars and add the tile to the full image.
+        """
         for ni in tqdm(range(self.nsource),leave=False):
             # Generate the tile:
             tile,origin = self.tile_gen.get_tile(ni)
@@ -395,11 +287,19 @@ class ImageGenerator:
                             xstart:xstart+self.tile_gen.psf_width_pix] += tile
         
     def get_rebinned_cropped(self,rebin_factor,cropped_width_as):
-        """Rebin self.full_image after cropping to desired rebin factor."""
+        """Rebin self.full_image after cropping to desired rebin factor.
+        
+        Args:
+            rebin_factor (int): rebinning factor from high-res image to rebinned image. 
+            Note that no checking is done on the validity of this, so use with care.
+            cropped_width_as (float): desired width of final image in arcsec.
+        Returns:
+            rebinned_im (real-valued `np.ndarray`): complete image, rebinned and cropped. 
+        """
 
         xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
         cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
-        rebinned_im = self.rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
+        rebinned_im = self._rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
         return rebinned_im.cpu()
 
     def rebin(self, arr, new_shape):
