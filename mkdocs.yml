@@ -1,0 +1,14 @@
+site_name: MAVISIM
+repo_url: https://github.com/smonty93/MAVISIM/
+site_url: https://example.com
+theme:
+  name: readthedocs
+nav:
+  - Home: 'index.md'
+  - Installing MAVISIM: 'install.md'
+  - 'runningmavisimshort.md'
+  - Modules:
+    - 'sources/generate_image.md'
+    - 'sources/source.md'
+    - 'sources/util.md'
+    - 'sources/astromsim.md'

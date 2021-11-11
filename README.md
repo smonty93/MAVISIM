@@ -1,30 +1,31 @@
 # MAVISIM
-Image simulating tool for the next generation ESO instrument MAVIS. 
+Image simulating tool for the next generation ESO instrument MAVIS. If you use MAVISIM please cite <a href="https://ui.adsabs.harvard.edu/abs/2021MNRAS.507.2192M/abstract" target="_blank"> Monty et al. 2021.</a> 
 
-## Versions
-1.0 - Fourier PSF
-1.1 - EtE PSF, faster
+## Current Version
+**1.1 - EtE PSF** - more accurate representation of the PSF, suitable for photometric and astrometric science cases
 
-## Current Capabilities
-1. Able to simulate full stellar field (eg. Milky Way Globular Cluster) from an input physical catalogue
-2. Optimised for astrometric studies specifically
-3. Models three major sources of astrometric error introduced by the AO system
-  1. Tip-tilt residuals originating from uncorrected LO aberrations (dependent on the NGS constellation brightness and geometry) **field variable**
-  2. HO aberrations originating from the LGS constellation and characteristics **field variable**
-  3. Static field distortion originating from the AO module optics
+Documentation can be found <a href="https://mavisim.readthedocs.io/en/latest/" target="_blank"> here</a> 
+
+## Past Versions
+1.0 - Fourier PSF - fast, most flexibility for astrometric modeling
+
+Documentation can be found <a href="https://mavisim.readthedocs.io/en/v1.0.3/" target="_blank"> here</a>
+
+## General Features
+1. Can simulate full stellar field (eg. Milky Way Globular Cluster) from an input catalogue
+2. Models three major sources of astrometric error introduced by the AO system:
+    1. Tip-tilt residuals originating from uncorrected LO aberrations (dependent on the NGS constellation brightness and geometry) **field variable**
+    2. HO aberrations originating from the LGS constellation and characteristics **field variable**
+    3. Static field distortion originating from the AO module optics
 
 ## Current Limitations
 1. Monochromatic images only
-2. Currently only compatible with an approximate model of the MAVIS PSF using the Fourier method
-3. Only compatible with input **point source catalogues only**
+2. Only compatible with input **point source catalogues only**
 
-# MAVISIM 2.0
-Currently being developed using pieces of MAVISIM1.0 with several improvements.
+# Future Versions
 
-## Planned Improvements
-1. Broadband images
-2. EtE PSF database to replace Fourier PSFs
+## MAVISIM 1.2: Broadband End-to-End PSF
+Broadband images! Starting with the V band
 
-## Large-Scale Structural Changes
-1. PSF database to move to database of wavefronts, taking the wavelength and exposure time information from the user.
-Con't Here
+## MAVISIM 2.0
+Extended object version, not yet in development.

@@ -1,3 +1,0 @@
-[submodule "src/e2epsfs/ata"]
-	path = src/e2epsfs/ata
-	url = https://github.com/jcranney/ata.git
