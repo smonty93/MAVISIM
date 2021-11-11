@@ -2,10 +2,10 @@
 
 
 ## PSF
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L5)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L13)
 ```python 
 PSF(
-   fits_ext, padto, *, dtype = np.complex128
+   fits_ext, padto, *, dtype = np.float64
 )
 ```
 
@@ -36,7 +36,7 @@ header data (XPOS,YPOS,LAMBDA).
 
 
 ## TileGenerator
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L31)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L39)
 ```python 
 TileGenerator(
    source, psfs_file, gauss_width_pix, *, dtype = np.complex128, which_psf = None
@@ -71,7 +71,7 @@ Object for generating tiles to be sliced into final image.
 
 
 ### .get_effective_psf_fft
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L101)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L109)
 ```python
 .get_effective_psf_fft(
    s_pos
@@ -93,7 +93,7 @@ internal _psf_array to be used in the get_tile pipeline.
 
 
 ### .get_tile
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L134)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L142)
 ```python
 .get_tile(
    index
@@ -125,7 +125,7 @@ of the tile so that it may be sliced into the final image properly.
 
 
 ### .get_star_kernel_fft
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L210)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L211)
 ```python
 .get_star_kernel_fft(
    flux, cov, mu
@@ -138,7 +138,6 @@ Compute star Gaussian based in DFT space.
 Directly computes the FFT of the Gaussian kernel with appriate amplitude, 
 width, and offset to suit the tile being generated.
 
-Uses optimised np.einsum so requires running `optimize_star_kernel()` first.
 
 
 **Args**
@@ -153,21 +152,11 @@ Uses optimised np.einsum so requires running `optimize_star_kernel()` first.
 * **gaussian_fft** (`np.ndarray`) : star Gaussian kernel in FFT space.
 
 
-### .optimize_star_kernel
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L242)
-```python
-.optimize_star_kernel()
-```
-
----
-Runs star kernel once to optimise `np.einsum`
-
-
 ----
 
 
 ## ImageGenerator
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L264)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L243)
 ```python 
 ImageGenerator(
    array_width_pix, source, psfs_file, pixsize = 0.00375, gauss_width_pix = 34,
@@ -206,7 +195,7 @@ a `Source` object.
 
 
 ### .main
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L297)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L276)
 ```python
 .main()
 ```
@@ -216,7 +205,7 @@ Loop over all stars and add the tile to the full image.
 
 
 ### .get_rebinned_cropped
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L310)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L289)
 ```python
 .get_rebinned_cropped(
    rebin_factor, cropped_width_as
@@ -237,3 +226,14 @@ Note that no checking is done on the validity of this, so use with care.
 
 * **rebinned_im** (real-valued `np.ndarray`) : complete image, rebinned and cropped. 
 
+
+### .rebin
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L305)
+```python
+.rebin(
+   arr, new_shape
+)
+```
+
+---
+Rebin array (arr) into new shape (new_shape).
