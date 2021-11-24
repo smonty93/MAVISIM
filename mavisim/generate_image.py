@@ -23,7 +23,7 @@ class PSF:
     def __init__(self, fits_ext, padto, *, dtype=np.complex128):
         """Init PSF and perform RFFT2
         """
-        self.fft_data = (np.fft.rfft2(fits_ext.data,s=padto)).astype(dtype)
+        self.fft_data = (np.fft.rfft2(fits_ext.data/fits_ext.data.sum(),s=padto)).astype(dtype)
         self.xpos     = float(fits_ext.header["YPOS"])
         self.ypos     = float(fits_ext.header["XPOS"])
         self.Lambda   = float(fits_ext.header["LAMBDA"])
