@@ -31,7 +31,9 @@ class PSF:
     def __init__(self, fits_ext, padto, *, dtype=np.float64):
         """Init PSF and perform RFFT2
         """
-        self.fft_data = fft.rfft2(torch.tensor(fits_ext.data.astype(dtype),device=device),s=padto.tolist())
+        self.fft_data = fft.rfft2(torch.tensor((
+            fits_ext.data/fits_ext.data.sum()
+            ).astype(dtype),device=device),s=padto.tolist())
         self.xpos     = fits_ext.header["YPOS"]
         self.ypos     = fits_ext.header["XPOS"]
         self.Lambda   = fits_ext.header["LAMBDA"]
