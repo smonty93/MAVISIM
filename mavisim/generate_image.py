@@ -226,7 +226,7 @@ class TileGenerator:
             gaussian_fft (`np.ndarray`): star Gaussian kernel in FFT space.
         """
         offset = tensor((2*np.pi*1j)*mu)
-        gaussian_fft = (flux*(self._nx**2/self._T**2)*2*np.pi*np.sqrt(np.linalg.det(cov.cpu())))*torch.exp(
+        gaussian_fft = flux*torch.exp(
             (-2*(np.pi)**2)*contract(
                 "ij,ii,ij->j",
                 self._fft_pos,
@@ -308,5 +308,5 @@ class ImageGenerator:
         """Rebin array (arr) into new shape (new_shape)."""
         shape = (new_shape[0], arr.shape[0] // new_shape[0],
                  new_shape[1], arr.shape[1] // new_shape[1])
-        return arr.reshape(shape).mean(-1).mean(1)
+        return arr.reshape(shape).sum(-1).sum(1)
 
