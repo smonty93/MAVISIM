@@ -71,7 +71,7 @@ Object for generating tiles to be sliced into final image.
 
 
 ### .get_effective_psf_fft
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L111)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L116)
 ```python
 .get_effective_psf_fft(
    s_pos
@@ -93,7 +93,7 @@ internal _psf_array to be used in the get_tile pipeline.
 
 
 ### .get_tile
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L144)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L149)
 ```python
 .get_tile(
    index
@@ -106,7 +106,8 @@ Get the tile corresponding to source[index]
 From the tile_generator object tgen, calling tgen.get_tile(index) will
 generate the tile corresponding to the tgen.source_pos[index] star by 
 interpolating the 4 neighbouring PSFs and convolving this effective
-PSF with a Gaussian kernel defined by tgen.source_cov[index].
+PSF with a sub-pixel shifted Dirac-delta function, and if requested, a 
+Gaussian kernel defined by tgen.cov_mat .
 
 The output of this is a tile which has been trimmed down to the input
 PSF dimensions, as well as the coordinates of the bottom-left-corner
@@ -125,10 +126,10 @@ of the tile so that it may be sliced into the final image properly.
 
 
 ### .get_star_kernel_fft
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L213)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L218)
 ```python
 .get_star_kernel_fft(
-   flux, cov, mu
+   flux, mu
 )
 ```
 
@@ -143,7 +144,6 @@ width, and offset to suit the tile being generated.
 **Args**
 
 * **flux** (`float`) : flux of star.
-* **cov** (`np.ndarray`) : covariance matrix of star Gaussian.
 * **mu** (`np.ndarray`) : position of star.
 
 
@@ -156,7 +156,7 @@ width, and offset to suit the tile being generated.
 
 
 ## ImageGenerator
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L245)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L256)
 ```python 
 ImageGenerator(
    array_width_pix, source, psfs_file, pixsize = 0.00375, gauss_width_pix = 34,
@@ -195,7 +195,7 @@ a `Source` object.
 
 
 ### .main
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L278)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L289)
 ```python
 .main()
 ```
@@ -205,7 +205,7 @@ Loop over all stars and add the tile to the full image.
 
 
 ### .get_rebinned_cropped
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L291)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L302)
 ```python
 .get_rebinned_cropped(
    rebin_factor, cropped_width_as
