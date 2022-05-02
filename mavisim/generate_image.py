@@ -57,7 +57,14 @@ class TileGenerator:
         # Parse source info:
         self.source_flux = source.flux.copy()
         self.source_pos  = source.gauss_pos.copy()
-        self.source_cov  = source.gauss_cov.copy()
+        
+        # covariance matrix of gaussian kernel (default None)
+        if source.cov_mat is not None:
+            self.cov_mat  = source.cov_mat.copy().astype(
+                np.float32 if self.dtype==np.complex64 else np.float64
+            )
+        else:
+            self.cov_mat = None
         
         # Define nominal image geometry:
         # TODO read this from fits Primary HDU metadata
@@ -137,7 +144,8 @@ class TileGenerator:
         From the tile_generator object tgen, calling tgen.get_tile(index) will
         generate the tile corresponding to the tgen.source_pos[index] star by 
         interpolating the 4 neighbouring PSFs and convolving this effective
-        PSF with a Gaussian kernel defined by tgen.source_cov[index].
+        PSF with a sub-pixel shifted Dirac-delta function, and if requested, a 
+        Gaussian kernel defined by tgen.cov_mat .
 
         The output of this is a tile which has been trimmed down to the input
         PSF dimensions, as well as the coordinates of the bottom-left-corner
@@ -179,11 +187,10 @@ class TileGenerator:
         # Pick star from source table
         star_flux = self.source_flux[index]
         star_pos  = self.source_pos[index]
-        star_cov  = self.source_cov[index]
+        
         if self.dtype==np.complex64:
             star_flux = np.float32(star_flux)
             star_pos  = star_pos.astype(np.float32)
-            star_cov  = star_cov.astype(np.float32)
 
         # Clear internal array:
         self._psf_array *= 0.0
@@ -193,11 +200,11 @@ class TileGenerator:
 
         # Prepare for FFT Gaussian computation:
         offset = (((((star_pos % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
-        _star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.array([1.0,1.0]) + offset
+        _star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.r_[1.0,1.0] + offset
         bottom_left_corner = star_pos-offset-self.psf_width_as/2 - 0.5*self.pixsize
 
         # Compute star Gaussian and convolve with PSF:
-        self._psf_array *= self.get_star_kernel_fft(star_flux, star_cov, _star_pos)
+        self._psf_array *= self.get_star_kernel_fft(star_flux, _star_pos)
         
         # Inverse FFT and trimming:
         out = (np.fft.fftshift(
@@ -207,7 +214,7 @@ class TileGenerator:
 
         return out, bottom_left_corner    
 
-    def get_star_kernel_fft(self, flux, cov, mu):
+    def get_star_kernel_fft(self, flux, mu):
         """Compute star Gaussian based in DFT space.
 
         Directly computes the FFT of the Gaussian kernel with appriate amplitude, 
@@ -217,18 +224,26 @@ class TileGenerator:
 
         Args:
             flux (`float`): flux of star.
-            cov (`np.ndarray`): covariance matrix of star Gaussian.
             mu (`np.ndarray`): position of star.
 
         Returns:
             gaussian_fft (`np.ndarray`): star Gaussian kernel in FFT space.
         """
         offset = (2*np.pi*1j)*mu
-        gaussian_fft = flux*np.exp(
+        if self.cov_mat is None:
+            gaussian_fft = flux*np.exp(
+                -np.einsum(
+                    "ij,i->j",
+                    self._fft_pos,
+                    offset,
+                    optimize=self._esp2
+                )).reshape(self._psf_array.shape) 
+        else:
+            gaussian_fft = flux*np.exp(
                 (-2*(np.pi)**2)*np.einsum(
                     "ij,ii,ij->j",
                     self._fft_pos,
-                    cov,
+                    self.cov_mat,
                     self._fft_pos,
                     optimize=self._esp1
                 ) - np.einsum(
@@ -243,7 +258,7 @@ class TileGenerator:
         """Runs star kernel once to optimise `np.einsum`
         """
 
-        cov = self.source_cov[0]
+        cov = np.zeros([2,2],dtype=np.float32 if self.dtype == np.complex64 else np.float64)
         mu  = self.source_pos[0]
         offset = 2*np.pi*1j*mu.flatten()
         self._esp1 = np.einsum_path(
