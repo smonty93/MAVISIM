@@ -67,7 +67,12 @@ class TileGenerator:
         # Parse source info:
         self.source_flux = source.flux.copy()
         self.source_pos  = source.gauss_pos.copy()
-        self.source_cov  = source.gauss_cov.copy()
+        
+        # covariance matrix of gaussian kernel (default None)
+        if source.cov_mat is not None:
+            self.cov_mat  = tensor(source.cov_mat) 
+        else:
+            self.cov_mat = None
         
         # Define nominal image geometry:
         # TODO read this from fits Primary HDU metadata
@@ -147,7 +152,8 @@ class TileGenerator:
         From the tile_generator object tgen, calling tgen.get_tile(index) will
         generate the tile corresponding to the tgen.source_pos[index] star by 
         interpolating the 4 neighbouring PSFs and convolving this effective
-        PSF with a Gaussian kernel defined by tgen.source_cov[index].
+        PSF with a sub-pixel shifted Dirac-delta function, and if requested, a 
+        Gaussian kernel defined by tgen.cov_mat .
 
         The output of this is a tile which has been trimmed down to the input
         PSF dimensions, as well as the coordinates of the bottom-left-corner
@@ -186,7 +192,6 @@ class TileGenerator:
         # Pick star from source table
         star_flux = self.source_flux[index]
         star_pos  = self.source_pos[index]
-        star_cov  = tensor(self.source_cov[index])
 
         # Clear internal array:
         self._psf_array *= 0.0
@@ -200,7 +205,7 @@ class TileGenerator:
         bottom_left_corner = star_pos-offset-self.psf_width_as/2 - 0.5*self.pixsize
 
         # Compute star Gaussian and convolve with PSF:
-        self._psf_array *= self.get_star_kernel_fft(star_flux, star_cov, _star_pos)
+        self._psf_array *= self.get_star_kernel_fft(star_flux, _star_pos)
         
         # Inverse FFT and trimming:
         out = fft.fftshift(
@@ -210,7 +215,7 @@ class TileGenerator:
 
         return out, bottom_left_corner    
 
-    def get_star_kernel_fft(self, flux, cov, mu):
+    def get_star_kernel_fft(self, flux, mu):
         """Compute star Gaussian based in DFT space.
 
         Directly computes the FFT of the Gaussian kernel with appriate amplitude, 
@@ -219,25 +224,31 @@ class TileGenerator:
 
         Args:
             flux (`float`): flux of star.
-            cov (`np.ndarray`): covariance matrix of star Gaussian.
             mu (`np.ndarray`): position of star.
 
         Returns:
             gaussian_fft (`np.ndarray`): star Gaussian kernel in FFT space.
         """
         offset = tensor((2*np.pi*1j)*mu)
-        gaussian_fft = flux*torch.exp(
-            (-2*(np.pi)**2)*contract(
-                "ij,ii,ij->j",
-                self._fft_pos,
-                cov,
-                self._fft_pos
-            ) - contract(
-                "ij,i->j",
-                self._fft_pos,
-                offset
-            )).reshape(self._psf_array.shape) 
-        # TODO brute force normalise. Was an error of about 0.2% last I checked.
+        if self.cov_mat is None:
+            gaussian_fft = flux*torch.exp(
+                -contract(
+                    "ij,i->j",
+                    self._fft_pos,
+                    offset
+                )).reshape(self._psf_array.shape)
+        else:
+            gaussian_fft = flux*torch.exp(
+                (-2*(np.pi)**2)*contract(
+                    "ij,ii,ij->j",
+                    self._fft_pos,
+                    self.cov_mat,
+                    self._fft_pos
+                ) - contract(
+                    "ij,i->j",
+                    self._fft_pos,
+                    offset
+                )).reshape(self._psf_array.shape)
         return gaussian_fft
     
 

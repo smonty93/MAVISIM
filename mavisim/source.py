@@ -71,7 +71,7 @@ class Source:
 		static_dist	(`np.ndarray` of `float`): static distortion to apply to each source.
 	"""
 
-	def __init__(self, input_par, exp_time, static_dist=False, stat_amp=1.0, tt_amp=1.0):
+	def __init__(self, input_par, exp_time, static_dist=False, stat_amp=1.0, tt_amp=1.0, use_cov=False):
 		"""Create a MAVISIM Source data object
 		"""
 		self._input_par = input_par
@@ -79,15 +79,14 @@ class Source:
 		self._static_dist_flag = static_dist
 		self._stat_amp = stat_amp
 		self._tt_amp = tt_amp
-
 		# Add static field distortion to the image?, If so, create the functions necessary to determine the distortion to add
 		if self._static_dist_flag == True:
 			(self._dist_x_func_degmm, self._dist_y_func_degmm) = make_static_dist_map(self._input_par)
 		else:
 			self._dist_x_func_degmm = self._dist_y_func_degmm = None
 
-		# Determine the covariance matrix only once (identical for all the stars) because NGS tip-tilt captured in e2e PSFs
-		self.cov_mat = self._find_covmat()
+		# Determine the covariance matrix (identical for all the stars) if it is desired
+		self.cov_mat = self._find_covmat() if use_cov else None
 
 	def build_source(self):
 		""" From the data stored in the object, compute the source data as required
@@ -219,7 +218,6 @@ class Source:
 		self.y_pm        =  self.y_pm[:nstar]
 		self.y_dist      =  self.y_dist[:nstar]
 		self.gauss_pos   =  self.gauss_pos[:nstar]
-		self.gauss_cov   =  self.gauss_cov[:nstar]
 		self.static_dist =  self.static_dist[:nstar]
 
 	def _find_covmat(self):
