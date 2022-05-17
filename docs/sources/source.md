@@ -58,7 +58,7 @@ From the data stored in the object, compute the source data as required
 
 
 ### .decimate
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L201)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L189)
 ```python
 .decimate(
    nstar

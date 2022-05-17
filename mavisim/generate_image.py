@@ -186,7 +186,7 @@ class TileGenerator:
         
         # Pick star from source table
         star_flux = self.source_flux[index]
-        star_pos  = self.source_pos[index]
+        star_pos  = self.source_pos[index] - 0.5*self.pixsize # convention is that (0,0)" is between the middle 4 pixels"
         
         if self.dtype==np.complex64:
             star_flux = np.float32(star_flux)
@@ -199,9 +199,9 @@ class TileGenerator:
         self.get_effective_psf_fft(star_pos)
 
         # Prepare for FFT Gaussian computation:
-        offset = (((((star_pos % self.pixsize)/self.pixsize)+0.5)%1)-1)*self.pixsize # this has to be easier
+        offset = star_pos%self.pixsize
         _star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.r_[1.0,1.0] + offset
-        bottom_left_corner = star_pos-offset-self.psf_width_as/2 - 0.5*self.pixsize
+        bottom_left_corner = np.int32(star_pos//self.pixsize - self.psf_width_pix//2)
 
         # Compute star Gaussian and convolve with PSF:
         self._psf_array *= self.get_star_kernel_fft(star_flux, _star_pos)
@@ -316,8 +316,8 @@ class ImageGenerator:
             # Generate the tile:
             tile,origin = self.tile_gen.get_tile(ni)
             # Find the location of the tile in the full image:
-            xstart = np.abs(self.xx-origin[0]).argmin()
-            ystart = np.abs(self.xx-origin[1]).argmin()
+            xstart = origin[0]+self.xx.shape[0]//2
+            ystart = origin[1]+self.xx.shape[0]//2
             # Slice the tile in:
             self.full_image[ystart:ystart+self.tile_gen.psf_width_pix,
                             xstart:xstart+self.tile_gen.psf_width_pix] += tile

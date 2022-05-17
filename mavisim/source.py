@@ -162,19 +162,7 @@ class Source:
 			x/y_dist = the sub-pixel shift in the x/y-direction for the star
 
 		"""
-
-		# Save the sub-pixel shift that comes from converting e.g. 15.1 degrees to pixels, pass this to the Gaussian later
-		x_mu_pix_true = (star_info["X"])/self._input_par.ccd_sampling
-		y_mu_pix_true = (star_info["Y"])/self._input_par.ccd_sampling
-
-		# Nearest integer pixel
-		x_mu_pix = int(np.around(star_info["X"]/self._input_par.ccd_sampling, 0))
-		y_mu_pix = int(np.around(star_info["Y"]/self._input_par.ccd_sampling, 0))
-
-		# Sub-pixel shift
-		delta_xpix = x_mu_pix_true - x_mu_pix
-		delta_ypix = y_mu_pix_true - y_mu_pix
-
+		# TODO: this can be made significantly cleaner
 		if self._static_dist_flag == True:
 			# Retrieve the interpolated distortion at each point and convert from the default output (mm) to pixels
 			# Input to functions is in degrees
@@ -186,15 +174,15 @@ class Source:
 			y_static_dist = (((self._dist_y_func_degmm(x_deg, y_deg) * self._input_par.plate_scale)/self._input_par.ccd_sampling)[0][0]) * self._stat_amp
 
 			# Sum the two sub-pixel terms to find the final distortion
-			final_x_dist = x_static_dist + delta_xpix
-			final_y_dist = y_static_dist + delta_ypix
+			final_x_dist = x_static_dist
+			final_y_dist = y_static_dist
 
 			return (final_x_dist, final_y_dist, np.asarray([x_static_dist, y_static_dist]))
 
 		else:
 			# Sub-pixel shift is solely associated with the conversion from arcseconds to pixels
-			final_x_dist = delta_xpix
-			final_y_dist = delta_ypix
+			final_x_dist = 0.0
+			final_y_dist = 0.0
 
 			return (final_x_dist, final_y_dist, np.asarray([0, 0]))
 
