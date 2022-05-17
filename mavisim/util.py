@@ -32,22 +32,19 @@ def input_coo(input_par, source):
 	# Find the full FoV in pixels, this contains the buffer (which is trimmed later) to contain light from stars outside the FoV
 	full_fov_pix = int(input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling
 
-	# Convert the position to pixels (remove the knowledge of the static distortion and add the proper motion (if any))
-	x_pos = np.array(np.around(((source.x_pos/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-	true_x = x_pos + source.x_dist - source.static_dist[:, 0] + source.x_pm + 1
-
-	y_pos = np.array(np.around(((source.y_pos/input_par.ccd_sampling) + full_fov_pix/2.0), 0), int)
-	true_y = y_pos + source.y_dist - source.static_dist[:, 1] + source.y_pm + 1
+	# Convert the position to pixels (without the knowledge of the static distortion and add the proper motion (if any))
+	x_pos = np.array((source.x_pos+source.x_pm)/input_par.ccd_sampling + full_fov_pix/2.0)
+	y_pos = np.array((source.y_pos+source.y_pm)/input_par.ccd_sampling + full_fov_pix/2.0)
 
 	# Create the final table
 	input_coo = Table(data = (source.star,),names=("Star",))
 	input_coo.add_column(Column(source.flux),name="Flux")
 	input_coo.add_column(Column(source.ra),name="RA")
 	input_coo.add_column(Column(source.dec),name="Dec")
-	input_coo.add_column(Column(true_x), name="CCD_Mapped_X")
+	input_coo.add_column(Column(x_pos), name="CCD_Mapped_X")
 	input_coo.add_column(Column(source.x_pm), name="CCD_Mapped_PM_X")
 	input_coo.add_column(Column(source.static_dist[:, 0]), name="X Static Dist")
-	input_coo.add_column(Column(true_y), name="CCD_Mapped_Y")
+	input_coo.add_column(Column(y_pos), name="CCD_Mapped_Y")
 	input_coo.add_column(Column(source.y_pm), name="CCD_Mapped_PM_Y")
 	input_coo.add_column(Column(source.static_dist[:, 1]), name="Y Static Dist")
 
