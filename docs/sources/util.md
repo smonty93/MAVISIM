@@ -28,7 +28,7 @@ sub-pixel positioning and proper motion taken into account) and additional infor
 
 
 ### add_all_noise
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/util.py/#L72)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/util.py/#L69)
 ```python
 .add_all_noise(
    input_par, image, exp_time
@@ -55,7 +55,7 @@ Adds all noise effects onto noiseless image.
 
 
 ### make_static_dist_map
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/util.py/#L153)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/util.py/#L150)
 ```python
 .make_static_dist_map(
    input_par
