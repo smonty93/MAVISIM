@@ -122,7 +122,7 @@ class Source:
 
 		# Save the sub-pixel shift that comes from converting 15.1 degrees to pixels, keep track of this to shift later
 		(x_pos_dist, y_pos_dist, static_dist) = self._find_shift(star_info)
-		
+
 		# PM in arcseconds
 		pm_x = star_info["PM_X"]
 		pm_y = star_info["PM_Y"]
