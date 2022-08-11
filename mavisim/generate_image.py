@@ -18,12 +18,16 @@ class PSF:
         xpos (`float`): x-position of PSF point source in arcsec.
         ypos (`float`): y-position of PSF point source in arcsec.
         Lambda (`float`): wavelength used to capture the PSF.
+        norm (`bool`): whether or not to normalize the PSF.
     """
 
-    def __init__(self, fits_ext, padto, *, dtype=np.complex128):
+    def __init__(self, fits_ext, padto, *, dtype=np.complex128, norm=True):
         """Init PSF and perform RFFT2
         """
-        self.fft_data = (np.fft.rfft2(fits_ext.data/fits_ext.data.sum(),s=padto)).astype(dtype)
+        if norm:
+            self.fft_data = (np.fft.rfft2(fits_ext.data/fits_ext.data.sum(),s=padto)).astype(dtype)
+        else:
+            self.fft_data = (np.fft.rfft2(fits_ext.data,s=padto)).astype(dtype)
         self.xpos     = float(fits_ext.header["YPOS"])
         self.ypos     = float(fits_ext.header["XPOS"])
         self.Lambda   = float(fits_ext.header["LAMBDA"])
@@ -48,7 +52,7 @@ class TileGenerator:
     """
     
     def __init__( self, source, psfs_file, gauss_width_pix, *,
-             dtype = np.complex128, which_psf = None):
+             dtype = np.complex128, which_psf = None, pixsize=3.75e-3, norm_psf=True):
         """Initialise tile generator object by preparing source list and PSFs
         """
         
@@ -68,7 +72,7 @@ class TileGenerator:
         
         # Define nominal image geometry:
         # TODO read this from fits Primary HDU metadata
-        self.pixsize          = 3.75e-3         
+        self.pixsize          = pixsize
         self.gauss_width_pix  = gauss_width_pix
         self.gauss_width_as   = self.gauss_width_pix*self.pixsize
         self.gauss_dim        = np.array([self.gauss_width_pix,self.gauss_width_pix])
@@ -87,21 +91,16 @@ class TileGenerator:
             # Use variable PSFs
             self.static = False
             # Create PSF objects and do their FFTs
-            print("Using varible PSFs")
-            print("Doing PSF FFTs:")
             self.psfs = []
             for psf in tqdm(psfs_fits[1:],leave=False):
-                self.psfs.append(PSF(psf, self.fourier_tile_dim))
+                self.psfs.append(PSF(psf, self.fourier_tile_dim, norm=norm_psf))
             psfs_fits.close()
-            print("Done.                          ")
         else:
             # Use static PSFs
             self.static = True
             self.psfs = []
-            self.psfs.append(PSF(psfs_fits[1+which_psf], self.fourier_tile_dim))
+            self.psfs.append(PSF(psfs_fits[1+which_psf], self.fourier_tile_dim, norm=norm_psf))
             psfs_fits.close()
-            print(f"Using static PSF: {which_psf:3d} (fits hdu {which_psf+1:3d})" + 
-                    f"\nPSF pos: ({self.psfs[0].xpos:0.3f},{self.psfs[0].ypos:0.3f})\"")
 
         self._init = True
         
@@ -297,7 +296,7 @@ class ImageGenerator:
         tile_gen (`TileGenerator` object): tile generator object used to create tiles to slice into final image.
     """
     def __init__(self, array_width_pix, source, psfs_file, pixsize=3.75e-3, gauss_width_pix=34,
-            which_psf = None):        
+            which_psf = None, norm_psf=True):        
         """Contructor for ImageGenerator object
         """
 
@@ -306,7 +305,7 @@ class ImageGenerator:
         self.fov = self.xx[-1]-self.xx[0]
         self.xx -= (self.fov/2+self.pixsize/2)
         self.full_image = np.zeros([self.xx.shape[0],self.xx.shape[0]])
-        self.tile_gen = TileGenerator(source, psfs_file, gauss_width_pix, which_psf=which_psf)
+        self.tile_gen = TileGenerator(source, psfs_file, gauss_width_pix, which_psf=which_psf, pixsize=pixsize, norm_psf=norm_psf)
         self.nsource = source.flux.shape[0]
         
     def main(self):
@@ -322,7 +321,7 @@ class ImageGenerator:
             self.full_image[ystart:ystart+self.tile_gen.psf_width_pix,
                             xstart:xstart+self.tile_gen.psf_width_pix] += tile
         
-    def get_rebinned_cropped(self,rebin_factor,cropped_width_as):
+    def get_rebinned_cropped(self,rebin_factor,cropped_width_as,return_coords=False):
         """Rebin self.full_image after cropping to desired rebin factor.
         
         Args:
@@ -336,7 +335,12 @@ class ImageGenerator:
         xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
         cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
         rebinned_im = self._rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
-        return rebinned_im
+        if return_coords:
+            cropped_coords = np.array([self.xx[xx_cropped_id]])
+            rebinned_coords = self._rebin(cropped_coords,[1,cropped_coords.shape[1]//rebin_factor])/rebin_factor
+            return rebinned_im, rebinned_coords.flatten()
+        else:
+            return rebinned_im
 
     def _rebin(self, arr, new_shape):
         """Rebin array (arr) into new shape (new_shape)."""
