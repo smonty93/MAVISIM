@@ -92,7 +92,7 @@ class TileGenerator:
             self.static = False
             # Create PSF objects and do their FFTs
             self.psfs = []
-            for psf in tqdm(psfs_fits[1:],leave=False):
+            for psf in tqdm(psfs_fits[1:],desc="psfs",leave=False):
                 self.psfs.append(PSF(psf, self.fourier_tile_dim, norm=norm_psf))
             psfs_fits.close()
         else:
@@ -311,7 +311,7 @@ class ImageGenerator:
     def main(self):
         """Loop over all stars and add the tile to the full image.
         """
-        for ni in tqdm(range(self.nsource),leave=False):
+        for ni in tqdm(range(self.nsource),desc="stars",leave=False):
             # Generate the tile:
             tile,origin = self.tile_gen.get_tile(ni)
             # Find the location of the tile in the full image:
