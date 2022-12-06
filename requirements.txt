@@ -4,3 +4,4 @@ numpy
 matplotlib
 astropy
 scipy
+poppy
