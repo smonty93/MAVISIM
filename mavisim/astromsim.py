@@ -18,9 +18,9 @@ class AstromCalibSimGeneric():
                  num_pin_x=30):
         self._true_cam_samp = pixel_size_as                    # arcsec/pixel at output plane
         self._plate_scale = self._true_cam_samp/pixel_size_mm  # arcsec/mm at output plane
-        self._static_distort = static_distort                   # static distortion data
+        self._static_distort = static_distort                  # static distortion data
         self._dist_amp = dist_amp                              # distortion amplification factor
-        self._mask_scale = mask_scale                           # arcsec/mm at input plane
+        self._mask_scale = mask_scale                          # arcsec/mm at input plane
         self._pin_pitch = pin_pitch                            # mm at input plane
         self._num_pins = num_pin_x**2                          # 30x30 pinholes
         self._num_pin_x = num_pin_x                            # number of pins across the x-dimension (sqrt(num_pins_total))
@@ -307,10 +307,10 @@ class AstromCalibSimGeneric():
         Returns:
             _type_: _description_
         """
-        n_pos = self._p0_nom.shape[0]
+        n_pos = self._valid.sum()
 
         d_mat = np.zeros([4*n_pos,2*self._n_tot_poly])
-        grad_tmp = self._hbvpoly_grad(self._p0_nom,self._n_poly)
+        grad_tmp = self._hbvpoly_grad(self._p0_nom[self._valid],self._n_poly)
 
         d_mat[0::4,:self._n_tot_poly]   = grad_tmp[0]
         d_mat[1::4,self._n_tot_poly:]   = grad_tmp[0]
@@ -329,8 +329,7 @@ class AstromCalibSimGeneric():
         dpdy /= dy_arcsec
         
         # estimated gradients:
-        z_hat = np.c_[dpdx,dpdy].flatten()
-
+        z_hat = np.c_[dpdx[self._valid],dpdy[self._valid]].flatten()
         # estimated polynomial coefficients:
         return d_inv @ z_hat
 
@@ -343,14 +342,13 @@ class AstromCalibSimGeneric():
             "dist_func_degmm":self._input_distortions_degmm(),
             "grid":"square"
             }
-        self._p0_nom  = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
-        self._ppx_nom = self._make_pinhole_grid(xshift=self._dx,incl_dist=False, **kwargs_grid)
-        self._ppy_nom = self._make_pinhole_grid(yshift=self._dy,incl_dist=False, **kwargs_grid)
-        self._valid = np.all(np.abs(self._p0_nom)<=14.5,axis=1)
+        self._p0_nom,self._valid = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
+        self._ppx_nom,_          = self._make_pinhole_grid(xshift=self._dx,incl_dist=False, **kwargs_grid)
+        self._ppy_nom,_          = self._make_pinhole_grid(yshift=self._dy,incl_dist=False, **kwargs_grid)
         
-        self._p0_true  = self._make_pinhole_grid(sigma=self._hole_position_std,**kwargs_grid)
-        self._ppx_true = self._make_pinhole_grid(xshift=self._dx,sigma=self._hole_position_std,**kwargs_grid)
-        self._ppy_true = self._make_pinhole_grid(yshift=self._dy,sigma=self._hole_position_std,**kwargs_grid)
+        self._p0_true,_  = self._make_pinhole_grid(sigma=self._hole_position_std,**kwargs_grid)
+        self._ppx_true,_ = self._make_pinhole_grid(xshift=self._dx,sigma=self._hole_position_std,**kwargs_grid)
+        self._ppy_true,_ = self._make_pinhole_grid(yshift=self._dy,sigma=self._hole_position_std,**kwargs_grid)
 
     def _set_coords_hex(self):
         kwargs_grid = {
@@ -361,14 +359,13 @@ class AstromCalibSimGeneric():
             "dist_func_degmm":self._input_distortions_degmm(),
             "grid":"hex"
             }
-        self._p0_nom  = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
-        self._ppx_nom = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
-        self._ppy_nom = self._make_pinhole_grid(yshift=self._dy,incl_dist=False, **kwargs_grid)
-        self._valid = np.all(np.abs(self._p0_nom)<=14.5,axis=1)
+        self._p0_nom,self._valid = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
+        self._ppx_nom,_          = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
+        self._ppy_nom,_          = self._make_pinhole_grid(yshift=self._dy,incl_dist=False, **kwargs_grid)
         
-        self._p0_true  = self._make_pinhole_grid(sigma=self._hole_position_std,**kwargs_grid)
-        self._ppx_true = self._make_pinhole_grid(xshift=self._dx,sigma=self._hole_position_std,**kwargs_grid)
-        self._ppy_true = self._make_pinhole_grid(yshift=self._dy,sigma=self._hole_position_std,**kwargs_grid)
+        self._p0_true,_  = self._make_pinhole_grid(sigma=self._hole_position_std,**kwargs_grid)
+        self._ppx_true,_ = self._make_pinhole_grid(xshift=self._dx,sigma=self._hole_position_std,**kwargs_grid)
+        self._ppy_true,_ = self._make_pinhole_grid(yshift=self._dy,sigma=self._hole_position_std,**kwargs_grid)
 
 ###############################################################################
 ###############################################################################
@@ -505,9 +502,13 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         self._impx[self._impx<0] = 0
         self._impy[self._impy<0] = 0
         
-        self._p0_meas  = self._centroids(pos=self._p0_nom[self._valid],  im=self._im0)
-        self._ppx_meas = self._centroids(pos=self._ppx_nom[self._valid], im=self._impx)
-        self._ppy_meas = self._centroids(pos=self._ppy_nom[self._valid], im=self._impy)
+        self._p0_meas  = np.zeros(self._p0_nom.shape)
+        self._ppx_meas = np.zeros(self._ppx_nom.shape)
+        self._ppy_meas = np.zeros(self._ppy_nom.shape)
+        
+        self._p0_meas[self._valid]  = self._centroids(pos=self._p0_nom[self._valid],  im=self._im0)
+        self._ppx_meas[self._valid] = self._centroids(pos=self._ppx_nom[self._valid], im=self._impx)
+        self._ppy_meas[self._valid] = self._centroids(pos=self._ppy_nom[self._valid], im=self._impy)
 
     @staticmethod
     def _pinhole(size, x, y, radius):
