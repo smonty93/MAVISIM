@@ -17,7 +17,9 @@ pages:
   - page: "astromsim.md"
     source: "mavisim/astromsim.py"
     classes:
-      - AstromCalibSim
+      - AstromCalibSimGeneric
+      - AstromCalibSimAna
+      - AstromCalibSimE2E
   - page: "util.md"
     source: "mavisim/util.py"
     functions: 

@@ -1,83 +1,28 @@
 #
 
 
-## AstromCalibSim
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L4)
+## AstromCalibSimGeneric
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L9)
 ```python 
-AstromCalibSim(
-   static_distort, centroid_noise_std = 1e-05, hole_position_std = 0.01, dx = 0.2,
-   dy = 0.2, n_poly = 6, pin_pitch = 0.5, num_pin_x = 30, mask_scale = 1000.0/582,
-   pixel_size_as = 0.00736, pixel_size_mm = 0.01
+AstromCalibSimGeneric(
+   static_distort, *, pixel_size_as = 0.00736, pixel_size_mm = 0.01, dist_amp = 1.0,
+   mask_scale = 1000.0/582, hole_position_std = 0.01, dx = 0.2, dy = 0.2, dx_meas = None,
+   dy_meas = None, n_poly = 6, pin_pitch = 0.5, num_pin_x = 30
 )
 ```
 
 
 ---
-Astrometric Calibration Simulator for MAVIS.
-
-MAVIS will feature an astrometric calibration mask characterise the static
-distortions present in the MAVIS system. This simulator allows one to quantify
-the performance of that mask for a given distortion field, using the nominal
-astrometric calibration identification algorithms intended for MAVIS.
-
-The constructor takes in an astropy-parsed distortion field with the appropriate 
-headers (see below), and performs a simulated astrometric calibration process. 
-The public methods allow the evaluation of input, recovered, and residual 
-distortion fields.
-
-Static distortion file should have at least the following columns:
-```    
-  Field_x(deg)    Field_y(deg)    Predicted_x(mm)  Predicted_y(mm)    Real_x(mm)      Real_y(mm)
--4.16666667E-03 -4.16666667E-03   2.02613981E+01   2.02626354E+01   2.03494040E+01  2.03513749E+01
--4.16666667E-03 -4.07407407E-03   2.02613981E+01   1.98123546E+01   2.03496805E+01  1.98994423E+01
--4.16666667E-03 -3.98148148E-03   2.02613981E+01   1.93620738E+01   2.03499497E+01  1.94474891E+01
-...
- 4.07407407E-03  4.07407407E-03  -1.98111448E+01  -1.98123546E+01  -1.98997456E+01 -1.98980094E+01
-```
-and it should be parsed by astropy first, like:
-```python
-from astropy import ascii
-static_distort = ascii(distort_file)
-```
-
-
-**Args**
-
-* **static_distort**  : astropy table : table containing the distortions across the field
-* **centroid_noise_std**  : float : standard deviation of Gaussian noise applied to centroids (arcsec).
-* **hole_position_std**  : float : standard deviation of manufacturing error on hole positions (mm).
-* **dx**  : float : shift applied in x direction for calibration process (mm).
-* **dy**  : float : shift applied in y direction for calibration process (mm).
-* **n_poly**  : int : maximum order of homogenous bivariate polynomial used to fit distortions.
-* **pin_pitch**  : float : distance between pins at input plane (mm).
-* **num_pin_x**  : int : number of pins across the x-dimension (sqrt(num_pins_total)).
-* **mask_scale**  : float : arcsec/mm at input plane.
-* **pixel_size_as**  : float : pixel size in arcsec of imager camera.
-* **pixel_size_mm**  : float : physical pixel size in mm of imager camera.
-
-
-
-
-
-
-
-
-
-
-
-
-**Attributes**
-
-* **mask_scale**  : float : arcsec/mm at input plane.
-* **static_distort**  : astropy.Table : static distortion input table
-
+Generic class for astrometric calibration simulation.
+See: AstromCalibSimAna for the analytical simulation
+AstromCalibSimE2E for the end-to-end simulation
 
 
 **Methods:**
 
 
 ### .input_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L81)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L45)
 ```python
 .input_dist(
    x, y
@@ -101,7 +46,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .recovered_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L107)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L116)
 ```python
 .recovered_dist(
    x, y
@@ -127,7 +72,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .residual_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L135)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L146)
 ```python
 .residual_dist(
    x, y
@@ -149,3 +94,147 @@ be array-like and the same size.
 ---
 Returns
     out_y : array-like float : y-component of distortion at each coord
+
+### ._hbvpoly
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L177)
+```python
+._hbvpoly(
+   p, a, n_poly
+)
+```
+
+---
+Evaluate the homogenous bi-variate polynomial defined by 
+coefficients in a at position p.
+
+
+**Arguments**
+
+* **p**  : np.ndarray : position to evaluate polynomial at, (M,2)
+* **a**  : np.ndarray : coefficients defining polynomial, (((N+1)(N+2))//2-1,)
+* **N**  : int: maximum homogenous polynomial order to go to.
+
+
+**Returns**
+
+* **out**  : np.ndarray : evaluated polynomial, scalar or (M,1)
+
+
+### ._hbvpoly_grad
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L200)
+```python
+._hbvpoly_grad(
+   p, n_poly
+)
+```
+
+---
+Evaluate the gradient of the homogenous bi-variate polynomial 
+defined by coefficients in a at position p.
+
+
+**Arguments**
+
+* **p**  : np.ndarray : position to evaluate polynomial gradient at, (2,) or (M,2)
+* **n_poly**  : int: maximum homogenous polynomial order to go to.
+
+
+**Returns**
+
+* **out**  : np.ndarray : evaluated polynomial gradient,
+
+
+### ._make_pinhole_grid
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L232)
+```python
+._make_pinhole_grid(
+   xshift = 0.0, yshift = 0.0, sigma = 0.0, grid = 'square', incl_dist = True,
+   pins_per_side = 30, mask_scale = 1000.0/582, pin_pitch = 0.571,
+   plate_scale = 0.00736/0.01, dist_func_degmm = None, seed = 1234
+)
+```
+
+---
+Generate arrays of x-y pinhole positions in pixels and arcsec.
+Optionally pass a global shift in x/y, in mm, to shift pinhole grid
+relative to distortion field. Can also provide an uncertainty in the hole
+positions (also in mm), which is treated as Gaussian. Distortions are
+included by default, but can be turned off to get "nominal" pinhole grid.
+
+
+
+**Args**
+
+* **xshift** (float, optional) : Shift amount in x-axis (arcsec). Defaults to 0..
+* **yshift** (float, optional) : Shift amount in y-axis (arcsec). Defaults to 0..
+* **sigma** (float, optional) : Standard deviation on pinhole positions. Defaults to 0..
+* **incl_dist** (bool, optional) : Flag to include distortions in returned coordinates. Defaults to True.
+* **pins_per_side** (int, optional) : Number of pins per side of the grid. Defaults to 30.
+* **mask_scale** (float, optional) : arcsec/mm at the mask. Defaults to (1e3/582).
+* **pin_pitch** (float, optional) : spacing between the pinholes (in mm). Defaults to 0.582.
+* **plate_scale** (float, optional) : arcsec/mm at the sensor. Defaults to 7.36e-3/10e-3.
+* **dist_func_degmm** (function, optional) : Function to obtain distortion. 
+    Takes argument in degrees in field, returns distortion in mm at sensor. Defaults to None.
+
+
+**Returns**
+
+* **ndarray**  : 2d array of x-y pinhole positions in arcsec.
+
+
+----
+
+
+## AstromCalibSimAna
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L374)
+```python 
+AstromCalibSimAna(
+   *args, centroid_noise_std = 1e-05, **kwargs
+)
+```
+
+
+
+----
+
+
+## AstromCalibSimE2E
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L400)
+```python 
+AstromCalibSimE2E(
+   *args, pin_size = 0.01, pinhole_os = 4, pixel_os = 2, wavelength = 5.5e-07,
+   pinhole_support_width = 128, noise_fun = None, centroid_win_rad = 0.2,
+   centroid_threshold = 0.0, **kwargs
+)
+```
+
+
+
+
+**Methods:**
+
+
+### ._pinhole
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L514)
+```python
+._pinhole(
+   size, x, y, radius
+)
+```
+
+---
+generate the sampled pinhole function
+
+
+**Args**
+
+* **size** (int) : size of the output array (in pixels)
+* **x** (float) : x position of the pinhole (in pixels)
+* **y** (float) : y position of the pinhole (in pixels)
+* **radius** (float) : radius of the pinhole (in pixels)
+
+
+**Returns**
+
+* **ndarray**  : 2d array of the pinhole function
+
