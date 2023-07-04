@@ -1,6 +1,0 @@
-ipython
-notebook
-numpy
-matplotlib
-astropy
-scipy

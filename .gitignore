@@ -139,3 +139,4 @@ cython_debug/
 
 # Data not in git repo:
 data/
+datav1_1/
