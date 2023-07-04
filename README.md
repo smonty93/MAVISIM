@@ -1,4 +1,8 @@
 # MAVISIM
+<!--- These are examples. See https://shields.io for others or to customize this set of shields. You might want to include dependencies, project status and licence info here --->
+![GitHub contributors](https://img.shields.io/github/contributors/smonty93/mavisim) ![License](https://img.shields.io/github/license/smonty93/mavisim) 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/mavisim) ![PyPI version](https://img.shields.io/pypi/v/mavisim) 
+
 Image simulating tool for the next generation ESO instrument MAVIS. If you use MAVISIM please cite <a href="https://ui.adsabs.harvard.edu/abs/2021MNRAS.507.2192M/abstract" target="_blank"> Monty et al. 2021.</a> 
 
 ## Current Version
