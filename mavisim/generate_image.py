@@ -321,7 +321,7 @@ class ImageGenerator:
             self.full_image[ystart:ystart+self.tile_gen.psf_width_pix,
                             xstart:xstart+self.tile_gen.psf_width_pix] += tile
         
-    def get_rebinned_cropped(self,rebin_factor,cropped_width_as,return_coords=False):
+    def get_rebinned_cropped(self,rebin_factor,cropped_width_as):
         """Rebin self.full_image after cropping to desired rebin factor.
         
         Args:
@@ -331,16 +331,14 @@ class ImageGenerator:
         Returns:
             rebinned_im (real-valued `np.ndarray`): complete image, rebinned and cropped. 
         """
-
-        xx_cropped_id = np.abs(self.xx)<=cropped_width_as/2
-        cropped_im = self.full_image[xx_cropped_id,:][:,xx_cropped_id]
+        initial_width_pixels = int(np.round(cropped_width_as/self.pixsize))
+        print(initial_width_pixels)
+        cropped_im = self.full_image[self.full_image.shape[0]//2-initial_width_pixels//2:
+                                     self.full_image.shape[0]//2+initial_width_pixels//2,
+                                     self.full_image.shape[1]//2-initial_width_pixels//2:
+                                     self.full_image.shape[1]//2+initial_width_pixels//2]
         rebinned_im = self._rebin(cropped_im,np.array(cropped_im.shape)//rebin_factor)
-        if return_coords:
-            cropped_coords = np.array([self.xx[xx_cropped_id]])
-            rebinned_coords = self._rebin(cropped_coords,[1,cropped_coords.shape[1]//rebin_factor])/rebin_factor
-            return rebinned_im, rebinned_coords.flatten()
-        else:
-            return rebinned_im
+        return rebinned_im
 
     def _rebin(self, arr, new_shape):
         """Rebin array (arr) into new shape (new_shape)."""
