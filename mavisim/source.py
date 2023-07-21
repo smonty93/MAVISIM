@@ -107,7 +107,7 @@ class Source:
 		self.gauss_cov   = np.zeros([num_stars,2,2],dtype=dtype)
 		self.static_dist = np.zeros([num_stars,2],dtype=dtype)
 		
-		for star in tqdm(range(num_stars)):
+		for star in tqdm(range(num_stars),leave=False):
 			star_info = self._input_par.input_cat[star]
 			self._compute_row(star,star_info)
 
