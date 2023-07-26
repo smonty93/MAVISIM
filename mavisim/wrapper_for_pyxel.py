@@ -4,12 +4,13 @@ import pyxel
 from pyxel.util import fit_into_array
 import numpy as np
 import numpy.typing as npt
+from pyxel.detectors import CCD, APD
 
 
 def calc_noise_pyxel(
     input_photon: npt.NDArray,
     yaml_file: str,
-) -> np.ndarray:
+) -> np.ndarray | None:
     """ Takes photon array and yaml parameter file name and processes it to add noise
 
     Parameters
@@ -31,6 +32,9 @@ def calc_noise_pyxel(
 
     config = pyxel.load(yaml_file=yaml_file)
 
+    if config.exposure is None:
+        return None
+
     # Set pyxel stuff from the config file
     exposure = config.exposure  # class Single
     pipeline = config.pipeline  # class DetectionPipeline
@@ -38,16 +42,12 @@ def calc_noise_pyxel(
     # Currently this only supports ccd and apd detector,
     # but it's easy to add support for other detectors
 
+    detector: APD | CCD
     # set detector to ccd or apd
     if (config.ccd_detector is not None):
         detector = config.ccd_detector
-        # Need to remove the following later on - we multiply by
-        # 1e3 only because of a bug in the current script
-        input_photon = input_photon
-        # print('using ccd detector')
     elif (config.apd_detector is not None):
         detector = config.apd_detector
-        # print('using apd detector')
     else:
         raise ValueError("Failed to set detector. Must be either apd or ccd.")
 
@@ -67,13 +67,16 @@ def calc_noise_pyxel(
         raise ValueError("Shapes of arrays do not match") from ex
 
     # run pyxel in exposure mode
-    pyxel_result = pyxel.exposure_mode(
-        exposure=exposure, detector=detector, pipeline=pipeline)
-    # print(pyxel_result)
+    if exposure:
+        pyxel_result = pyxel.exposure_mode(
+            exposure=exposure, detector=detector, pipeline=pipeline)
+    else:
+        raise NotImplementedError
 
     # Get the image from Pyxel
-    pyxel_readout = config.exposure.readout.times[0]
-    output_image_padded = np.array(pyxel_result.image.sel(readout_time=pyxel_readout))
+    if config.exposure:
+        pyxel_readout = config.exposure.readout.times[0]
+        output_image_padded = np.array(pyxel_result.image.sel(readout_time=pyxel_readout))
 
     # Remove padding
     output_image = fit_into_array(
