@@ -3,7 +3,6 @@
 import pyxel
 from pyxel.util import fit_into_array
 import numpy as np
-import time
 import numpy.typing as npt
 
 
@@ -23,8 +22,6 @@ def calc_noise_pyxel(
     output_image: ndarray
 
     """
-    t1 = time.time()
-
     # Add pyxel noise calculation stuff here
     # Make sure that the photon only has positive elements
     input_photon[input_photon < 0.0] = 0.0
@@ -60,8 +57,6 @@ def calc_noise_pyxel(
 
     # Pad zeros to array to match detector size
     det_shape = (detector_row, detector_col)
-    position_y = 0
-    position_x = 0
     padded_pyxel_photon_array = fit_into_array(array=input_photon,
                                                output_shape=det_shape, align='center')
 
@@ -85,8 +80,5 @@ def calc_noise_pyxel(
         array=output_image_padded,
         output_shape=(row, col), align='center'
     )
-
-    t2 = time.time()
-    # print(t2-t1, 'seconds taken for Pyxel computing')
 
     return np.array(output_image)

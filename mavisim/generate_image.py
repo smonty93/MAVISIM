@@ -118,7 +118,7 @@ class TileGenerator:
             star_pos (`np.ndarray`) : position [arcsec].
         """
 
-        if self.static == True:
+        if self.static:
             # Use static PSF
             self._psf_array += self.psfs[0].fft_data
         else:
@@ -160,7 +160,7 @@ class TileGenerator:
             bottom_left_corner (`np.ndarray`): coordinates of bottom left corner of bottom left pixel in arcsec
         """
 
-        if self._init == True:
+        if self._init:
             # Initialise internal variables first time around
 
             # new shape is ~ half full tile size due to RFFT2 optimisation

@@ -5,13 +5,14 @@
 # PROJECT - MAVISIM
 # CONTENTS:
 # V1.1 DIFFERENCES:
-# 	1. NOT possible to add NGS tip-tilt jitter term on the fly, the NGS constellation is fixed as the best-case scenario (three stars, spaced evenly throughout the field)
-#      and is already built into the e2e PSFs.
+# 	1. NOT possible to add NGS tip-tilt jitter term on the fly, the NGS constellation is fixed as the best-case
+#      scenario (three stars, spaced evenly throughout the field) and is already built into the e2e PSFs.
 #
-# 1. NOTE: Very important, this program and all programs assume all projection effects have been taken into account, the cos(Dec) term has been
-# dealt with
+# 1. NOTE: Very important, this program and all programs assume all projection effects have been taken into account,
+#    the cos(Dec) term has been dealt with
 #
-#   1. This class creates an object with the required information to create a simulated image. This information is accessible via object attributes:
+#   1. This class creates an object with the required information to create a simulated image. This information is
+#      accessible via object attributes:
 # star  =  Number assigned to the star to help with tracking through epochs in PM sims
 # flux  =  Monochromatic flux of the star (photons/s) passed to the program by the input data
 # ra/dec  =  RA and Dec of input star to aid in velocity dispersion calculations
@@ -28,7 +29,8 @@
 # Docstrings and metadata:
 '''
 Generates a source object containing all the point sources used to create the final image.
-The info necessary to build a gaussian is created for each point source taking into account sub-pixel shifts due to distortion and non-integer pixel positions.
+The info necessary to build a gaussian is created for each point source taking into account sub-pixel shifts due to distortion and
+non-integer pixel positions.
 
 '''
 __author__ = "Stephanie Monty"
@@ -81,7 +83,7 @@ class Source:
         self._stat_amp = stat_amp
         self._tt_amp = tt_amp
         # Add static field distortion to the image?, If so, create the functions necessary to determine the distortion to add
-        if self._static_dist_flag == True:
+        if self._static_dist_flag:
             (self._dist_x_func_degmm, self._dist_y_func_degmm) = make_static_dist_map(self._input_par)
         else:
             self._dist_x_func_degmm = self._dist_y_func_degmm = None
@@ -164,7 +166,7 @@ class Source:
 
         """
         # TODO: this can be made significantly cleaner
-        if self._static_dist_flag == True:
+        if self._static_dist_flag:
             # Retrieve the interpolated distortion at each point and convert from the default output (mm) to pixels
             # Input to functions is in degrees
             x_deg = star_info["X"] / 3600.0
