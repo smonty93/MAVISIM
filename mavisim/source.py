@@ -27,7 +27,7 @@
 
 # Docstrings and metadata:
 '''
-Generates a source object containing all the point sources used to create the final image. 
+Generates a source object containing all the point sources used to create the final image.
 The info necessary to build a gaussian is created for each point source taking into account sub-pixel shifts due to distortion and non-integer pixel positions.
 
 '''
@@ -167,12 +167,12 @@ class Source:
         if self._static_dist_flag == True:
             # Retrieve the interpolated distortion at each point and convert from the default output (mm) to pixels
             # Input to functions is in degrees
-            x_deg = star_info["X"]/3600.0
-            y_deg = star_info["Y"]/3600.0
+            x_deg = star_info["X"] / 3600.0
+            y_deg = star_info["Y"] / 3600.0
 
             # Static distortion for the star given the location, converting from mm to pixels
-            x_static_dist = (((self._dist_x_func_degmm(x_deg, y_deg) * self._input_par.plate_scale)/self._input_par.ccd_sampling)[0][0]) * self._stat_amp
-            y_static_dist = (((self._dist_y_func_degmm(x_deg, y_deg) * self._input_par.plate_scale)/self._input_par.ccd_sampling)[0][0]) * self._stat_amp
+            x_static_dist = (((self._dist_x_func_degmm(x_deg, y_deg) * self._input_par.plate_scale) / self._input_par.ccd_sampling)[0][0]) * self._stat_amp
+            y_static_dist = (((self._dist_y_func_degmm(x_deg, y_deg) * self._input_par.plate_scale) / self._input_par.ccd_sampling)[0][0]) * self._stat_amp
 
             # Sum the two sub-pixel terms to find the final distortion
             final_x_dist = x_static_dist
@@ -236,7 +236,7 @@ class Source:
         semi_minor_arcsec = semi_minor * self._input_par.ccd_sampling
 
         # For some reason the array is not oriented the correct way so y and x have to be swapped
-        theta = np.pi/2
+        theta = np.pi / 2
 
         # Correct the rotation about the first diagonal by swapping the sine and cosine of the angles
         c, s = np.sin(theta), np.cos(theta)

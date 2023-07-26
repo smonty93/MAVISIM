@@ -26,7 +26,7 @@ class PSF:
         """Init PSF and perform RFFT2
         """
         if norm:
-            self.fft_data = (np.fft.rfft2(fits_ext.data/fits_ext.data.sum(), s=padto)).astype(dtype)
+            self.fft_data = (np.fft.rfft2(fits_ext.data / fits_ext.data.sum(), s=padto)).astype(dtype)
         else:
             self.fft_data = (np.fft.rfft2(fits_ext.data, s=padto)).astype(dtype)
         self.xpos = float(fits_ext.header["XPOS"])
@@ -76,7 +76,7 @@ class TileGenerator:
         # TODO read this from fits Primary HDU metadata
         self.pixsize = pixsize
         self.gauss_width_pix = gauss_width_pix
-        self.gauss_width_as = self.gauss_width_pix*self.pixsize
+        self.gauss_width_as = self.gauss_width_pix * self.pixsize
         self.gauss_dim = np.array([self.gauss_width_pix, self.gauss_width_pix])
 
         # Load PSF file and define Fourier Image Geometry:
@@ -101,7 +101,7 @@ class TileGenerator:
             # Use static PSFs
             self.static = True
             self.psfs = []
-            self.psfs.append(PSF(psfs_fits[1+which_psf], self.fourier_tile_dim, norm=norm_psf))
+            self.psfs.append(PSF(psfs_fits[1 + which_psf], self.fourier_tile_dim, norm=norm_psf))
             psfs_fits.close()
 
         self._init = True
@@ -111,7 +111,7 @@ class TileGenerator:
 
         From star position, the convex combination PSF is found
         (equivalent to bilinear interpolation since stars are defined
-        on square grid). The resulting effective PSF is added to the 
+        on square grid). The resulting effective PSF is added to the
         internal _psf_array to be used in the get_tile pipeline.
 
         Args:
@@ -125,27 +125,27 @@ class TileGenerator:
             # Perform convex combination of PSFs based on star position
             for psf in self.psfs:
                 gamma_check = \
-                    (np.abs(psf.xpos-s_pos[0]) < self.psf_pitch) and \
-                    (np.abs(psf.ypos-s_pos[1]) < self.psf_pitch)
+                    (np.abs(psf.xpos - s_pos[0]) < self.psf_pitch) and \
+                    (np.abs(psf.ypos - s_pos[1]) < self.psf_pitch)
                 if gamma_check:
                     # PSF is a vertex of convex hull around star.
                     # Compute the PSFs convex combination coefficient:
                     gamma = (
-                        (1-np.abs(psf.xpos-s_pos[0])/self.psf_pitch) *
-                        (1-np.abs(psf.ypos-s_pos[1])/self.psf_pitch)
+                        (1 - np.abs(psf.xpos - s_pos[0]) / self.psf_pitch) *
+                        (1 - np.abs(psf.ypos - s_pos[1]) / self.psf_pitch)
                     ).astype(psf.fft_data.dtype)
                 else:
                     continue
                 # add result to PSF array
-                self._psf_array += gamma*psf.fft_data
+                self._psf_array += gamma * psf.fft_data
 
     def get_tile(self, index):
         """Get the tile corresponding to source[index]
 
         From the tile_generator object tgen, calling tgen.get_tile(index) will
-        generate the tile corresponding to the tgen.source_pos[index] star by 
+        generate the tile corresponding to the tgen.source_pos[index] star by
         interpolating the 4 neighbouring PSFs and convolving this effective
-        PSF with a sub-pixel shifted Dirac-delta function, and if requested, a 
+        PSF with a sub-pixel shifted Dirac-delta function, and if requested, a
         Gaussian kernel defined by tgen.cov_mat .
 
         The output of this is a tile which has been trimmed down to the input
@@ -164,16 +164,16 @@ class TileGenerator:
             # Initialise internal variables first time around
 
             # new shape is ~ half full tile size due to RFFT2 optimisation
-            new_shape = [self.fourier_tile_dim[0], self.fourier_tile_dim[1]//2+1]
+            new_shape = [self.fourier_tile_dim[0], self.fourier_tile_dim[1] // 2 + 1]
             self._psf_array = np.zeros(new_shape, dtype=self.dtype)
 
             # Coordinates (uu,vv) of DFT space:
             self._nx = self.fourier_tile_dim[0]  # square image only
             self._T = self.dtype(self.gauss_width_as + self.psf_width_as)
-            self._Ts = self.dtype(self._T/self._nx)
+            self._Ts = self.dtype(self._T / self._nx)
             uu, vv = np.meshgrid(
-                np.linspace(0, 1/self._Ts, self._nx+1, dtype=self.dtype)[:-1]-1/(2*self._Ts),
-                np.linspace(0, 1/self._Ts, self._nx+1, dtype=self.dtype)[:-1]-1/(2*self._Ts)
+                np.linspace(0, 1 / self._Ts, self._nx + 1, dtype=self.dtype)[:-1] - 1 / (2 * self._Ts),
+                np.linspace(0, 1 / self._Ts, self._nx + 1, dtype=self.dtype)[:-1] - 1 / (2 * self._Ts)
             )
             uu = np.fft.fftshift(uu)
             vv = np.fft.fftshift(vv)
@@ -187,7 +187,7 @@ class TileGenerator:
 
         # Pick star from source table
         star_flux = self.source_flux[index]
-        star_pos = self.source_pos[index] - 0.5*self.pixsize  # convention is that (0,0)" is between the middle 4 pixels"
+        star_pos = self.source_pos[index] - 0.5 * self.pixsize  # convention is that (0,0)" is between the middle 4 pixels"
 
         if self.dtype == np.complex64:
             star_flux = np.float32(star_flux)
@@ -201,8 +201,8 @@ class TileGenerator:
 
         # Prepare for FFT Gaussian computation:
         offset = star_pos % self.pixsize
-        _star_pos = (self.psf_width_as+self.gauss_width_as)/2 * np.r_[1.0, 1.0] + offset
-        bottom_left_corner = np.int32(star_pos//self.pixsize - self.psf_width_pix//2)
+        _star_pos = (self.psf_width_as + self.gauss_width_as) / 2 * np.r_[1.0, 1.0] + offset
+        bottom_left_corner = np.int32(star_pos // self.pixsize - self.psf_width_pix // 2)
 
         # Compute star Gaussian and convolve with PSF:
         self._psf_array *= self.get_star_kernel_fft(star_flux, _star_pos)
@@ -218,7 +218,7 @@ class TileGenerator:
     def get_star_kernel_fft(self, flux, mu):
         """Compute star Gaussian based in DFT space.
 
-        Directly computes the FFT of the Gaussian kernel with appriate amplitude, 
+        Directly computes the FFT of the Gaussian kernel with appriate amplitude,
         width, and offset to suit the tile being generated.
 
         Uses optimised np.einsum so requires running `optimize_star_kernel()` first.
@@ -230,9 +230,9 @@ class TileGenerator:
         Returns:
             gaussian_fft (`np.ndarray`): star Gaussian kernel in FFT space.
         """
-        offset = (2*np.pi*1j)*mu
+        offset = (2 * np.pi * 1j) * mu
         if self.cov_mat is None:
-            gaussian_fft = flux*np.exp(
+            gaussian_fft = flux * np.exp(
                 -np.einsum(
                     "ij,i->j",
                     self._fft_pos,
@@ -240,8 +240,8 @@ class TileGenerator:
                     optimize=self._esp2
                 )).reshape(self._psf_array.shape)
         else:
-            gaussian_fft = flux*np.exp(
-                (-2*(np.pi)**2)*np.einsum(
+            gaussian_fft = flux * np.exp(
+                (-2 * (np.pi)**2) * np.einsum(
                     "ij,ii,ij->j",
                     self._fft_pos,
                     self.cov_mat,
@@ -261,7 +261,7 @@ class TileGenerator:
 
         cov = np.zeros([2, 2], dtype=np.float32 if self.dtype == np.complex64 else np.float64)
         mu = self.source_pos[0]
-        offset = 2*np.pi*1j*mu.flatten()
+        offset = 2 * np.pi * 1j * mu.flatten()
         self._esp1 = np.einsum_path(
             "ij,ii,ij->j",
             self._fft_pos,
@@ -304,9 +304,9 @@ class ImageGenerator:
         """
 
         self.pixsize = pixsize
-        self.xx = np.arange(array_width_pix)*pixsize
-        self.fov = self.xx[-1]-self.xx[0]
-        self.xx -= (self.fov/2+self.pixsize/2)
+        self.xx = np.arange(array_width_pix) * pixsize
+        self.fov = self.xx[-1] - self.xx[0]
+        self.xx -= (self.fov / 2 + self.pixsize / 2)
         self.full_image = np.zeros([self.xx.shape[0], self.xx.shape[0]])
         self.tile_gen = TileGenerator(source, psfs_file, gauss_width_pix, which_psf=which_psf, pixsize=pixsize, norm_psf=norm_psf)
         self.nsource = source.flux.shape[0]
@@ -318,28 +318,28 @@ class ImageGenerator:
             # Generate the tile:
             tile, origin = self.tile_gen.get_tile(ni)
             # Find the location of the tile in the full image:
-            xstart = origin[0]+self.xx.shape[0]//2
-            ystart = origin[1]+self.xx.shape[0]//2
+            xstart = origin[0] + self.xx.shape[0] // 2
+            ystart = origin[1] + self.xx.shape[0] // 2
             # Slice the tile in:
-            self.full_image[ystart:ystart+self.tile_gen.psf_width_pix,
-                            xstart:xstart+self.tile_gen.psf_width_pix] += tile
+            self.full_image[ystart:ystart + self.tile_gen.psf_width_pix,
+                            xstart:xstart + self.tile_gen.psf_width_pix] += tile
 
     def get_rebinned_cropped(self, rebin_factor, cropped_width_as):
         """Rebin self.full_image after cropping to desired rebin factor.
 
         Args:
-            rebin_factor (int): rebinning factor from high-res image to rebinned image. 
+            rebin_factor (int): rebinning factor from high-res image to rebinned image.
             Note that no checking is done on the validity of this, so use with care.
             cropped_width_as (float): desired width of final image in arcsec.
         Returns:
-            rebinned_im (real-valued `np.ndarray`): complete image, rebinned and cropped. 
+            rebinned_im (real-valued `np.ndarray`): complete image, rebinned and cropped.
         """
-        initial_width_pixels = int(np.round(cropped_width_as/self.pixsize))
-        cropped_im = self.full_image[self.full_image.shape[0]//2-initial_width_pixels//2:
-                                     self.full_image.shape[0]//2+initial_width_pixels//2,
-                                     self.full_image.shape[1]//2-initial_width_pixels//2:
-                                     self.full_image.shape[1]//2+initial_width_pixels//2]
-        rebinned_im = self._rebin(cropped_im, np.array(cropped_im.shape)//rebin_factor)
+        initial_width_pixels = int(np.round(cropped_width_as / self.pixsize))
+        cropped_im = self.full_image[self.full_image.shape[0] // 2 - initial_width_pixels // 2:
+                                     self.full_image.shape[0] // 2 + initial_width_pixels // 2,
+                                     self.full_image.shape[1] // 2 - initial_width_pixels // 2:
+                                     self.full_image.shape[1] // 2 + initial_width_pixels // 2]
+        rebinned_im = self._rebin(cropped_im, np.array(cropped_im.shape) // rebin_factor)
         return rebinned_im
 
     def _rebin(self, arr, new_shape):

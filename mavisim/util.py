@@ -24,18 +24,18 @@ def input_coo(input_par, source):
             source (`Source` object): the `Source` object containing all of the sources simulated.
 
     Returns:
-            trimmed_cat = an astropy table containing the TRUE input positions (static distortion, 
+            trimmed_cat = an astropy table containing the TRUE input positions (static distortion,
             sub-pixel positioning and proper motion taken into account) and additional information necessary to compare with the DAOPhot output.
     """
     # Note we need to take two different coordinate conventions into account here, the convention of the CCD (x -> y) and the convention
     # of DAOPhot (starts at position 1, 1)
 
     # Find the full FoV in pixels, this contains the buffer (which is trimmed later) to contain light from stars outside the FoV
-    full_fov_pix = int(input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling
+    full_fov_pix = int(input_par.MAVIS_fov + input_par.buffer) / input_par.ccd_sampling
 
     # Convert the position to pixels (without the knowledge of the static distortion and add the proper motion (if any))
-    x_pos = np.array((source.x_pos+source.x_pm)/input_par.ccd_sampling + full_fov_pix/2.0)
-    y_pos = np.array((source.y_pos+source.y_pm)/input_par.ccd_sampling + full_fov_pix/2.0)
+    x_pos = np.array((source.x_pos + source.x_pm) / input_par.ccd_sampling + full_fov_pix / 2.0)
+    y_pos = np.array((source.y_pos + source.y_pm) / input_par.ccd_sampling + full_fov_pix / 2.0)
 
     # Create the final table
     input_coo = Table(data=(source.star,), names=("Star",))
@@ -51,19 +51,19 @@ def input_coo(input_par, source):
 
     # Roughly trim the input catalogue to only include stars in the MAVIS FoV
     # Set the boundary to include stars just outside of the CCD limit (diagonal)
-    image_size = (input_par.MAVIS_fov + input_par.buffer)/input_par.ccd_sampling
+    image_size = (input_par.MAVIS_fov + input_par.buffer) / input_par.ccd_sampling
 
-    r = np.sqrt(2 * (input_par.ccd_size/2.0)**2) + 100
+    r = np.sqrt(2 * (input_par.ccd_size / 2.0)**2) + 100
 
-    r_coo = np.sqrt((int(image_size/2.0) - input_coo["CCD_Mapped_X"])**2 +
+    r_coo = np.sqrt((int(image_size / 2.0) - input_coo["CCD_Mapped_X"])**2 +
                     (int(image_size / 2.0) - input_coo["CCD_Mapped_Y"])**2)
 
     trim = np.where(r_coo <= r)[0]
     trimmed_cat = input_coo[trim]
 
     # Correct for the change from the larger buffered FoV to the FoV of the MAVIS CCD
-    trimmed_cat["CCD_Mapped_X"] = trimmed_cat["CCD_Mapped_X"] - (image_size/2 - input_par.ccd_size/2)
-    trimmed_cat["CCD_Mapped_Y"] = trimmed_cat["CCD_Mapped_Y"] - (image_size/2 - input_par.ccd_size/2)
+    trimmed_cat["CCD_Mapped_X"] = trimmed_cat["CCD_Mapped_X"] - (image_size / 2 - input_par.ccd_size / 2)
+    trimmed_cat["CCD_Mapped_Y"] = trimmed_cat["CCD_Mapped_Y"] - (image_size / 2 - input_par.ccd_size / 2)
 
     return trimmed_cat
 
@@ -132,7 +132,7 @@ def add_all_noise(input_par, image, exp_time):
 def add_constant_sky_pixel(input_par, exp_time):
     """ Add constant-valued sky background.
     Args:
-    input_par: input parameters object.    
+    input_par: input parameters object.
             exp_time (`float`): exposure time in seconds to convert from photons/s to photons.
 
     Returns:
@@ -142,8 +142,8 @@ def add_constant_sky_pixel(input_par, exp_time):
     square_arcsec_pervoxel = (input_par.ccd_sampling**2) * u.arcsec**2
 
     # Assuming the surface brightness is passed in as mag/arcsec^2 do the following:
-    flux_jy = (3631 * 10**(-1*input_par.surf_bright/2.5))*u.Jy*u.nm**(-1)
-    flux_ph_s_nm_cm2 = flux_jy * (1.51e3/input_par.psf_wavelength)
+    flux_jy = (3631 * 10**(-1 * input_par.surf_bright / 2.5)) * u.Jy * u.nm**(-1)
+    flux_ph_s_nm_cm2 = flux_jy * (1.51e3 / input_par.psf_wavelength)
     flux_ph_s_nm_m2 = flux_ph_s_nm_cm2 * 10**4
     flux_ph_s_m2 = flux_ph_s_nm_m2 * input_par.filt_width  # in nm
     sky_value = flux_ph_s_m2 * square_arcsec_pervoxel * exp_time * input_par.collecting_area
@@ -155,11 +155,11 @@ def make_static_dist_map(input_par):
     """ Make static distortion map from loaded distortion samples in `input_par`.
 
     Args:
-        input_par: input parameters object.    
+        input_par: input parameters object.
 
     Returns:
-        dist_x_func_degmm:  
-        dist_y_func_degmm:  
+        dist_x_func_degmm:
+        dist_y_func_degmm:
     """
     # Field_y(deg) Hx Hy  Predicted_x(mm)  Predicted_y(mm)  Real_x(mm)  Real_y(mm)
 
