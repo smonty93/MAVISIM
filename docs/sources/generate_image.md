@@ -221,7 +221,7 @@ Loop over all stars and add the tile to the full image.
 [source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/generate_image.py/#L324)
 ```python
 .get_rebinned_cropped(
-   rebin_factor, cropped_width_as, return_coords = False
+   rebin_factor, cropped_width_as
 )
 ```
 
