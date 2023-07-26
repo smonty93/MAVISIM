@@ -39,13 +39,13 @@ def calc_noise_pyxel(
     # but it's easy to add support for other detectors
 
     # set detector to ccd or apd
-    if(config.ccd_detector is not None):
+    if (config.ccd_detector is not None):
         detector = config.ccd_detector
         # Need to remove the following later on - we multiply by
         # 1e3 only because of a bug in the current script
         input_photon = input_photon
         # print('using ccd detector')
-    elif(config.apd_detector is not None):
+    elif (config.apd_detector is not None):
         detector = config.apd_detector
         # print('using apd detector')
     else:
