@@ -4,10 +4,11 @@ import pyxel
 from pyxel.util import fit_into_array
 import numpy as np
 import time
+import numpy.typing as npt
 
 def calc_noise_pyxel( 
-    input_photon: np.ndarray, 
-    yaml_file: str,
+        input_photon: npt.NDArray, 
+        yaml_file: str,
     ) -> np.ndarray:
     """ Takes photon array and yaml parameter file name and processes it to add noise
 
@@ -79,10 +80,12 @@ def calc_noise_pyxel(
     output_image_padded=np.array(pyxel_result.image.sel(readout_time=pyxel_readout))
 
     #Remove padding
-    output_image = fit_into_array(array=output_image_padded,
-    output_shape=(row,col), align='center')
+    output_image = fit_into_array(
+        array=output_image_padded,
+        output_shape=(row,col), align='center'
+    )
 
     t2=time.time()
     # print(t2-t1, 'seconds taken for Pyxel computing')
 
-    return output_image
+    return np.array(output_image)

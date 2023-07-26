@@ -115,13 +115,13 @@ def add_all_noise(input_par, image, exp_time):
     # Convert the final image from electrons to ADU
     # Cap at the saturation point
     if input_par.sat_point  == 0:
-        sat_point = np.int(2**input_par.bit_depth - 1) * input_par.gain
+        sat_point = np.int32(2**input_par.bit_depth - 1) * input_par.gain
 
     else:
         sat_point = input_par.sat_point
 
     # Convert from electrons to ADU, round to integers to be physical
-    image_adu = (im_addnoise * input_par.gain).astype(np.int)
+    image_adu = (im_addnoise * input_par.gain).astype(np.int32)
     image_adu[image_adu > sat_point] = sat_point
 	
     return (image_adu)

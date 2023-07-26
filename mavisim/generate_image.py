@@ -28,8 +28,8 @@ class PSF:
             self.fft_data = (np.fft.rfft2(fits_ext.data/fits_ext.data.sum(),s=padto)).astype(dtype)
         else:
             self.fft_data = (np.fft.rfft2(fits_ext.data,s=padto)).astype(dtype)
-        self.xpos     = float(fits_ext.header["YPOS"])
-        self.ypos     = float(fits_ext.header["XPOS"])
+        self.xpos     = float(fits_ext.header["XPOS"])
+        self.ypos     = float(fits_ext.header["YPOS"])
         self.Lambda   = float(fits_ext.header["LAMBDA"])
     
 class TileGenerator:
@@ -332,7 +332,6 @@ class ImageGenerator:
             rebinned_im (real-valued `np.ndarray`): complete image, rebinned and cropped. 
         """
         initial_width_pixels = int(np.round(cropped_width_as/self.pixsize))
-        print(initial_width_pixels)
         cropped_im = self.full_image[self.full_image.shape[0]//2-initial_width_pixels//2:
                                      self.full_image.shape[0]//2+initial_width_pixels//2,
                                      self.full_image.shape[1]//2-initial_width_pixels//2:

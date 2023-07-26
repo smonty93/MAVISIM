@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy import interpolate
 from astropy.convolution import convolve_fft
 import poppy
@@ -41,6 +42,10 @@ class AstromCalibSimGeneric():
         # Process input distortions into interpolated evaluatable function
         self._input_distortions_func = self._input_distortions()
         self._recovered_distortions_func = None
+        
+        self._p0_meas  = self._p0_true.copy()
+        self._ppx_meas = self._ppx_true.copy()
+        self._ppy_meas = self._ppy_true.copy()
     
     def input_dist(self,x,y):
         """Evaluate interpolated input distortions at arbitrary coordinates.
@@ -192,7 +197,7 @@ class AstromCalibSimGeneric():
         counter = 0
         for n in range(1,n_poly+1): # skip tip-tilt
             for j in range(n+1):
-                out[:] += a[counter]*p[:,0]**j*p[:,1]**(n-j)/np.math.factorial(n)
+                out[:] += a[counter]*p[:,0]**j*p[:,1]**(n-j)/math.factorial(n)
                 counter += 1
         return out
 
@@ -217,7 +222,7 @@ class AstromCalibSimGeneric():
                 counter += 1
                 if j==0:
                     continue
-                dx[:,counter] += j*p[:,0]**(j-1)*p[:,1]**(n-j)/np.math.factorial(n)
+                dx[:,counter] += j*p[:,0]**(j-1)*p[:,1]**(n-j)/math.factorial(n)
 
         counter = -1
         for n in range(1,n_poly+1): # skip tip-tilt
@@ -225,7 +230,7 @@ class AstromCalibSimGeneric():
                 counter += 1
                 if j==n:
                     continue
-                dy[:,counter] += (n-j)*p[:,0]**j*p[:,1]**(n-j-1)/np.math.factorial(n)
+                dy[:,counter] += (n-j)*p[:,0]**j*p[:,1]**(n-j-1)/math.factorial(n)
         return dx,dy
     
     @staticmethod
@@ -424,7 +429,7 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         return lambda x,y: np.c_[self._hbvpoly(np.c_[x,y],u_hat[:self._n_tot_poly],self._n_poly),
                                  self._hbvpoly(np.c_[x,y],u_hat[self._n_tot_poly:],self._n_poly)]
 
-    def _centroids(self,pos,im):
+    def _centroids(self,pos,im,origin):
         """_summary_
 
         Args:
@@ -436,7 +441,6 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
             _type_: _description_
         """
         cog_meas = []
-        origin = self._coords[0]
         win_rad = self._centroid_win_rad
         # iterate over pinholes:
         for pin_x,pin_y in tqdm(pos,desc="centroids",leave=False):
@@ -486,7 +490,7 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         image_gen_ppx.main()
         image_gen_ppy.main()
         
-        self._im0,self._coords = image_gen_p0.get_rebinned_cropped(self._pixel_os,self._true_cam_samp*4000,return_coords=True)
+        self._im0  = image_gen_p0.get_rebinned_cropped(self._pixel_os,self._true_cam_samp*4000)
         self._impx = image_gen_ppx.get_rebinned_cropped(self._pixel_os,self._true_cam_samp*4000)
         self._impy = image_gen_ppy.get_rebinned_cropped(self._pixel_os,self._true_cam_samp*4000)
         
@@ -506,9 +510,11 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         self._ppx_meas = np.zeros(self._ppx_nom.shape)
         self._ppy_meas = np.zeros(self._ppy_nom.shape)
         
-        self._p0_meas[self._valid]  = self._centroids(pos=self._p0_nom[self._valid],  im=self._im0)
-        self._ppx_meas[self._valid] = self._centroids(pos=self._ppx_nom[self._valid], im=self._impx)
-        self._ppy_meas[self._valid] = self._centroids(pos=self._ppy_nom[self._valid], im=self._impy)
+        # TODO: this origin thing is ugly and maybe buggy, can be cleaned up with a convention change 
+        origin = np.array([-15.0,-15.0])
+        self._p0_meas[self._valid]  = self._centroids(pos=self._p0_nom[self._valid],  im=self._im0, origin=origin)
+        self._ppx_meas[self._valid] = self._centroids(pos=self._ppx_nom[self._valid], im=self._impx, origin=origin)
+        self._ppy_meas[self._valid] = self._centroids(pos=self._ppy_nom[self._valid], im=self._impy, origin=origin)
 
     @staticmethod
     def _pinhole(size, x, y, radius):
