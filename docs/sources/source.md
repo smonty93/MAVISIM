@@ -2,7 +2,7 @@
 
 
 ## Source
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L45)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L48)
 ```python 
 Source(
    input_par, exp_time, static_dist = False, stat_amp = 1.0, tt_amp = 1.0,
@@ -48,7 +48,7 @@ to compute the MAVISIM image.
 
 
 ### .build_source
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L91)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L94)
 ```python
 .build_source()
 ```
@@ -58,7 +58,7 @@ From the data stored in the object, compute the source data as required
 
 
 ### .decimate
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L189)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/source.py/#L192)
 ```python
 .decimate(
    nstar
