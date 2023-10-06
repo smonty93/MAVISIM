@@ -44,6 +44,9 @@ class AstromCalibSimGeneric():
         # Process input distortions into interpolated evaluatable function
         self._input_distortions_func = self._input_distortions()
         self._recovered_distortions_func = None
+        self._p0_meas = None
+        self._ppx_meas = None
+        self._ppy_meas = None
 
     def input_dist(self, x, y):
         """Evaluate interpolated input distortions at arbitrary coordinates.
@@ -276,7 +279,7 @@ class AstromCalibSimGeneric():
             y_mm *= spacing
         else:
             raise ValueError("grid type: " + grid + " is unsupported.")
-        mask = (np.abs(x_mm)<=15.0/mask_scale)*(np.abs(y_mm)<=15.0/mask_scale)
+        mask = (np.abs(x_mm) <= 15.0/mask_scale) * (np.abs(y_mm) <= 15.0 / mask_scale)
         x_mm = x_mm[mask]
         y_mm = y_mm[mask]
         x_mm = x_mm.flatten()
@@ -287,7 +290,7 @@ class AstromCalibSimGeneric():
         # apply any shift terms
         pin_loc_mm_in[:, 0] += xshift
         pin_loc_mm_in[:, 1] += yshift
-        
+
         valid = (pin_loc_mm_in**2).sum(axis=1)**0.5 <= (14.5 / mask_scale)
 
         # include uncertainty in hole position?
@@ -326,16 +329,14 @@ class AstromCalibSimGeneric():
 
         dx_arcsec = self._mask_scale * self._dx_meas
         dy_arcsec = self._mask_scale * self._dy_meas
-        
+
         # compenent-wise gradients:
+        if self._p0_meas is None:
+            raise RuntimeError("measurements must be made before fitting polynomial")
         dpdx = (self._ppx_meas - self._p0_meas) - np.r_[dx_arcsec, 0]
         dpdx /= dx_arcsec
         dpdy = (self._ppy_meas - self._p0_meas) - np.r_[0, dy_arcsec]
         dpdy /= dy_arcsec
-        #dpdx = (self._ppx_meas - self._p0_meas) - (self._ppx_meas-self._p0_meas)[self._valid].mean(axis=0) # - np.r_[dx_arcsec, 0]
-        #dpdx /= (self._ppx_meas-self._p0_meas).mean(axis=0)[0] # dx_arcsec
-        #dpdy = (self._ppy_meas - self._p0_meas) - (self._ppy_meas-self._p0_meas)[self._valid].mean(axis=0) # - np.r_[0, dy_arcsec]
-        #dpdy /= (self._ppy_meas-self._p0_meas).mean(axis=0)[1] # dy_arcsec
 
         # estimated gradients:
         z_hat = np.c_[dpdx[self._valid], dpdy[self._valid]].flatten()
@@ -484,9 +485,9 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
                 self.gauss_pos = coords.copy()
                 self.cov_mat = None
 
-        source_p0 = SourceHack(self._p0_true)   # + self._true_cam_samp * 0.5)
-        source_ppx = SourceHack(self._ppx_true) # + self._true_cam_samp * 0.5)
-        source_ppy = SourceHack(self._ppy_true) # + self._true_cam_samp * 0.5)
+        source_p0 = SourceHack(self._p0_true)
+        source_ppx = SourceHack(self._ppx_true)
+        source_ppy = SourceHack(self._ppy_true)
 
         image_gen_p0 = generate_image.ImageGenerator(6400 * self._pixel_os,
                                                      source_p0, pin_image_filename,
@@ -506,7 +507,7 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         self._impy = image_gen_ppy.get_rebinned_cropped(self._pixel_os, self._true_cam_samp * 4000)
 
         if self._noise_fun is not None:
-            self._im0  = self._noise_fun(self._im0)
+            self._im0 = self._noise_fun(self._im0)
             self._impx = self._noise_fun(self._impx)
             self._impy = self._noise_fun(self._impy)
 
