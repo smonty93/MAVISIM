@@ -16,9 +16,9 @@ class AstromCalibSimGeneric():
 
     def __init__(self, static_distort, *, pixel_size_as=0.00736,
                  pixel_size_mm=10e-3, dist_amp=1.0, mask_scale=1e3 / 582,
-                 hole_position_std=1e-2, dx=0.2, dy=0.2,
+                 hole_position_std=0.0, dx=0.2, dy=0.2,
                  dx_meas=None, dy_meas=None, n_poly=6, pin_pitch=0.5,
-                 num_pin_x=30):
+                 num_pin_x=40):
         self._true_cam_samp = pixel_size_as                    # arcsec/pixel at output plane
         self._plate_scale = self._true_cam_samp / pixel_size_mm  # arcsec/mm at output plane
         self._static_distort = static_distort                  # static distortion data
@@ -44,10 +44,6 @@ class AstromCalibSimGeneric():
         # Process input distortions into interpolated evaluatable function
         self._input_distortions_func = self._input_distortions()
         self._recovered_distortions_func = None
-
-        self._p0_meas = self._p0_true.copy()
-        self._ppx_meas = self._ppx_true.copy()
-        self._ppy_meas = self._ppy_true.copy()
 
     def input_dist(self, x, y):
         """Evaluate interpolated input distortions at arbitrary coordinates.
@@ -276,21 +272,23 @@ class AstromCalibSimGeneric():
             y_mm[:, ::2] += 1 / 2
             x_mm *= (np.sqrt(3) / 2)
             y_mm -= 0.5
-            x_mm = x_mm.flatten()
-            y_mm = y_mm.flatten()
             x_mm *= spacing
             y_mm *= spacing
         else:
             raise ValueError("grid type: " + grid + " is unsupported.")
+        mask = (np.abs(x_mm)<=15.0/mask_scale)*(np.abs(y_mm)<=15.0/mask_scale)
+        x_mm = x_mm[mask]
+        y_mm = y_mm[mask]
+        x_mm = x_mm.flatten()
+        y_mm = y_mm.flatten()
 
-        valid = (np.abs(x_mm) <= (14.5 / mask_scale)) & (np.abs(y_mm) <= (14.5 / mask_scale))
-        # x_mm = x_mm[valid]
-        # y_mm = y_mm[valid]
-        pin_loc_mm_in = np.c_[x_mm.flatten(), y_mm.flatten()]
+        pin_loc_mm_in = np.c_[x_mm, y_mm]
 
         # apply any shift terms
         pin_loc_mm_in[:, 0] += xshift
         pin_loc_mm_in[:, 1] += yshift
+        
+        valid = (pin_loc_mm_in**2).sum(axis=1)**0.5 <= (14.5 / mask_scale)
 
         # include uncertainty in hole position?
         np.random.seed(seed)
@@ -328,12 +326,16 @@ class AstromCalibSimGeneric():
 
         dx_arcsec = self._mask_scale * self._dx_meas
         dy_arcsec = self._mask_scale * self._dy_meas
-
+        
         # compenent-wise gradients:
         dpdx = (self._ppx_meas - self._p0_meas) - np.r_[dx_arcsec, 0]
         dpdx /= dx_arcsec
         dpdy = (self._ppy_meas - self._p0_meas) - np.r_[0, dy_arcsec]
         dpdy /= dy_arcsec
+        #dpdx = (self._ppx_meas - self._p0_meas) - (self._ppx_meas-self._p0_meas)[self._valid].mean(axis=0) # - np.r_[dx_arcsec, 0]
+        #dpdx /= (self._ppx_meas-self._p0_meas).mean(axis=0)[0] # dx_arcsec
+        #dpdy = (self._ppy_meas - self._p0_meas) - (self._ppy_meas-self._p0_meas)[self._valid].mean(axis=0) # - np.r_[0, dy_arcsec]
+        #dpdy /= (self._ppy_meas-self._p0_meas).mean(axis=0)[1] # dy_arcsec
 
         # estimated gradients:
         z_hat = np.c_[dpdx[self._valid], dpdy[self._valid]].flatten()
@@ -349,10 +351,12 @@ class AstromCalibSimGeneric():
             "dist_func_degmm": self._input_distortions_degmm(),
             "grid": "square"
         }
-        self._p0_nom, self._valid = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
-        self._ppx_nom, _ = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
-        self._ppy_nom, _ = self._make_pinhole_grid(yshift=self._dy, incl_dist=False, **kwargs_grid)
-
+        self._p0_nom, v = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
+        self._ppx_nom, v_ = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
+        v = v * v_
+        self._ppy_nom, v_ = self._make_pinhole_grid(yshift=self._dy, incl_dist=False, **kwargs_grid)
+        v = v * v_
+        self._valid = v
         self._p0_true, _ = self._make_pinhole_grid(sigma=self._hole_position_std, **kwargs_grid)
         self._ppx_true, _ = self._make_pinhole_grid(xshift=self._dx, sigma=self._hole_position_std, **kwargs_grid)
         self._ppy_true, _ = self._make_pinhole_grid(yshift=self._dy, sigma=self._hole_position_std, **kwargs_grid)
@@ -366,10 +370,12 @@ class AstromCalibSimGeneric():
             "dist_func_degmm": self._input_distortions_degmm(),
             "grid": "hex"
         }
-        self._p0_nom, self._valid = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
-        self._ppx_nom, _ = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
-        self._ppy_nom, _ = self._make_pinhole_grid(yshift=self._dy, incl_dist=False, **kwargs_grid)
-
+        self._p0_nom, v = self._make_pinhole_grid(incl_dist=False, **kwargs_grid)
+        self._ppx_nom, v_ = self._make_pinhole_grid(xshift=self._dx, incl_dist=False, **kwargs_grid)
+        v = v * v_
+        self._ppy_nom, v_ = self._make_pinhole_grid(yshift=self._dy, incl_dist=False, **kwargs_grid)
+        v = v * v_
+        self._valid = v
         self._p0_true, _ = self._make_pinhole_grid(sigma=self._hole_position_std, **kwargs_grid)
         self._ppx_true, _ = self._make_pinhole_grid(xshift=self._dx, sigma=self._hole_position_std, **kwargs_grid)
         self._ppy_true, _ = self._make_pinhole_grid(yshift=self._dy, sigma=self._hole_position_std, **kwargs_grid)
@@ -383,7 +389,7 @@ class AstromCalibSimAna(AstromCalibSimGeneric):
     """
     """
 
-    def __init__(self, *args, centroid_noise_std=10e-6, **kwargs):
+    def __init__(self, *args, centroid_noise_std=0.0, **kwargs):
         super().__init__(*args, **kwargs)
         self._centroid_noise_std = centroid_noise_std
         # Perform calibration process, and process recovered distortions into evaluatable function
@@ -450,17 +456,17 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         # iterate over pinholes:
         for pin_x, pin_y in tqdm(pos, desc="centroids", leave=False):
             # integer-valued indices for desired pinhole-window
-            win_idx = np.mgrid[int((pin_x - win_rad - origin) / self._true_cam_samp):
-                               int((pin_x + win_rad - origin) / self._true_cam_samp) + 1,
-                               int((pin_y - win_rad - origin) / self._true_cam_samp):
-                               int((pin_y + win_rad - origin) / self._true_cam_samp) + 1]
+            win_idx = np.mgrid[int((pin_y - win_rad - origin[1]) / self._true_cam_samp):
+                               int((pin_y + win_rad - origin[1]) / self._true_cam_samp) + 1,
+                               int((pin_x - win_rad - origin[0]) / self._true_cam_samp):
+                               int((pin_x + win_rad - origin[0]) / self._true_cam_samp) + 1]
             win_idx = np.clip(win_idx, 0, im.shape[0] - 1)
             # corresponding pixel coordinates within that window
-            win_as = [(w * self._true_cam_samp + origin).flatten() for w in win_idx]
+            win_as = [((w+0.5) * self._true_cam_samp + origin[0]).flatten() for w in win_idx]
             # pixel intensities of window, flattened for centroiding
             window = im[win_idx[0], win_idx[1]].flatten()
             # centroid calculation
-            cog_meas.append([(window @ p) / window.sum() for p in win_as])
+            cog_meas.append([(window @ p) / window.sum() for p in win_as][::-1])
         return np.r_[cog_meas]
 
     def _do_measurements(self):
@@ -475,12 +481,12 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         class SourceHack:
             def __init__(self, coords):
                 self.flux = 1.0 * np.ones(len(coords))
-                self.gauss_pos = coords[:, ::-1]
+                self.gauss_pos = coords.copy()
                 self.cov_mat = None
 
-        source_p0 = SourceHack(self._p0_true + self._true_cam_samp * 0.5)
-        source_ppx = SourceHack(self._ppx_true + self._true_cam_samp * 0.5)
-        source_ppy = SourceHack(self._ppy_true + self._true_cam_samp * 0.5)
+        source_p0 = SourceHack(self._p0_true)   # + self._true_cam_samp * 0.5)
+        source_ppx = SourceHack(self._ppx_true) # + self._true_cam_samp * 0.5)
+        source_ppy = SourceHack(self._ppy_true) # + self._true_cam_samp * 0.5)
 
         image_gen_p0 = generate_image.ImageGenerator(6400 * self._pixel_os,
                                                      source_p0, pin_image_filename,
@@ -500,7 +506,7 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         self._impy = image_gen_ppy.get_rebinned_cropped(self._pixel_os, self._true_cam_samp * 4000)
 
         if self._noise_fun is not None:
-            self._im0 = self._noise_fun(self._im0)
+            self._im0  = self._noise_fun(self._im0)
             self._impx = self._noise_fun(self._impx)
             self._impy = self._noise_fun(self._impy)
 
@@ -516,7 +522,7 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         self._ppy_meas = np.zeros(self._ppy_nom.shape)
 
         # TODO: this origin thing is ugly and maybe buggy, can be cleaned up with a convention change
-        origin = np.array([-15.0, -15.0])
+        origin = np.array([-0.5, -0.5]) * (self._true_cam_samp * 4000)
         self._p0_meas[self._valid] = self._centroids(pos=self._p0_nom[self._valid], im=self._im0, origin=origin)
         self._ppx_meas[self._valid] = self._centroids(pos=self._ppx_nom[self._valid], im=self._impx, origin=origin)
         self._ppy_meas[self._valid] = self._centroids(pos=self._ppy_nom[self._valid], im=self._impy, origin=origin)
