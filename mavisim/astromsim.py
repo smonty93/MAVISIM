@@ -85,14 +85,14 @@ class AstromCalibSimGeneric():
         grid_vals_y = np.unique(field_y)
         # Create grids to save the distortion (difference) in x and y at each point in the grid
         # This is necessary for the interpolation of the distortion (grid-wise interpolation)
-        dist_x_grid = np.zeros([len(grid_vals_x),len(grid_vals_y)])
-        dist_y_grid = np.zeros([len(grid_vals_x),len(grid_vals_y)])
+        dist_x_grid = np.zeros([len(grid_vals_x), len(grid_vals_y)])
+        dist_y_grid = np.zeros([len(grid_vals_x), len(grid_vals_y)])
 
         for i in range(len(field_x)):
             row = np.where(grid_vals_x == field_x[i])
             col = np.where(grid_vals_y == field_y[i])
-            dist_x_grid[row,col] = dist_x[i]
-            dist_y_grid[row,col] = dist_y[i]
+            dist_x_grid[row, col] = dist_x[i]
+            dist_y_grid[row, col] = dist_y[i]
 
         dist_x_func_degmm = interpolate.RectBivariateSpline(grid_vals_x, grid_vals_y, dist_x_grid)
         dist_y_func_degmm = interpolate.RectBivariateSpline(grid_vals_x, grid_vals_y, dist_y_grid)
