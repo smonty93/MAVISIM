@@ -22,7 +22,7 @@ AstromCalibSimE2E for the end-to-end simulation
 
 
 ### .input_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L51)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L54)
 ```python
 .input_dist(
    x, y
@@ -46,7 +46,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .recovered_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L109)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L112)
 ```python
 .recovered_dist(
    x, y
@@ -72,7 +72,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### .residual_dist
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L139)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L142)
 ```python
 .residual_dist(
    x, y
@@ -96,7 +96,7 @@ Returns
     out_y : array-like float : y-component of distortion at each coord
 
 ### ._hbvpoly
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L170)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L173)
 ```python
 ._hbvpoly(
    p, a, n_poly
@@ -121,7 +121,7 @@ coefficients in a at position p.
 
 
 ### ._hbvpoly_grad
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L193)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L196)
 ```python
 ._hbvpoly_grad(
    p, n_poly
@@ -145,7 +145,7 @@ defined by coefficients in a at position p.
 
 
 ### ._make_pinhole_grid
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L225)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L228)
 ```python
 ._make_pinhole_grid(
    xshift = 0.0, yshift = 0.0, sigma = 0.0, grid = 'square', incl_dist = True,
@@ -186,7 +186,7 @@ included by default, but can be turned off to get "nominal" pinhole grid.
 
 
 ## AstromCalibSimAna
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L376)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L380)
 ```python 
 AstromCalibSimAna(
    *args, centroid_noise_std = 0.0, **kwargs
@@ -199,7 +199,7 @@ AstromCalibSimAna(
 
 
 ## AstromCalibSimE2E
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L404)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L408)
 ```python 
 AstromCalibSimE2E(
    *args, pin_size = 0.01, pinhole_os = 4, pixel_os = 2, wavelength = 5.5e-07,
@@ -215,7 +215,7 @@ AstromCalibSimE2E(
 
 
 ### ._pinhole
-[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L519)
+[source](https://github.com/smonty93/mavisim/blob/v1.1dev/mavisim/astromsim.py/#L523)
 ```python
 ._pinhole(
    size, x, y, radius

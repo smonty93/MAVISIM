@@ -43,7 +43,7 @@ class AstromCalibSimGeneric():
 
         # Process input distortions into interpolated evaluatable function
         if static_distort is None:
-            self._input_distortions_func = lambda x,y : np.c_[x*y*0,x*y*0]
+            self._input_distortions_func = lambda x, y: np.c_[x*y*0, x*y*0]
         else:
             self._input_distortions_func = self._input_distortions()
         self._recovered_distortions_func = None
@@ -317,11 +317,11 @@ class AstromCalibSimGeneric():
 
         d_inv = np.linalg.solve(d_mat.T @ d_mat, d_mat.T)
         self._d_inv = d_inv
-               
+
         # compenent-wise gradients:
         if self._p0_meas is None:
             raise RuntimeError("measurements must be made before fitting polynomial")
-        
+
         dx_arcsec = self._mask_scale * self._dx_meas
         dy_arcsec = self._mask_scale * self._dy_meas
         dpdx = (self._ppx_meas - self._p0_meas) - np.r_[dx_arcsec, 0]

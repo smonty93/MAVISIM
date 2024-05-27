@@ -13,4 +13,5 @@ __all__ = ["make_static_dist_map",
            "Source",
            "AstromCalibSim",
            "AstromCalibSimAna",
-           "AstromCalibSimE2E"]
+           "AstromCalibSimE2E",
+           "AstromCalibSimGeneric"]
