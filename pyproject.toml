@@ -5,16 +5,57 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "mavisim"
+version = "1.1.18"
+authors = [
+    {name = "Stephanie Monty", email = "stephanie.monty@anu.edu.au"},
+    {name = "Jesse Cranney", email = "jesse.cranney@anu.edu.au"},
+]
+description = "Tool for simulating MAVIS images"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "GNU General Public License (GPL)"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "astropy",
+    "tqdm>=4.66.4",
+    "jupyter",
+    "poppy>=1.1.0",
+    "pyxel-sim"
+]
+
+[project.optional-dependencies]
+testing = [
+    "pytest",
+    "pytest-cov",
+    "mypy",
+    "flake8",
+    "tox"
+]
+
+[project.scripts]
+mavisim = "mavisim.__main__:__name__"
+
+[project.urls]
+Homepage = "https://github.com/smonty93/mavisim"
+Documentation = "https://mavisim.readthedocs.io/en/latest/"
+
 [tool.pytest.ini_options]
 addopts = "--cov=mavisim -v"
 testpaths = [
-    "tests",
+    "tests"
 ]
 
 [tool.mypy]
 mypy_path = "mavisim"
 check_untyped_defs = true
-#disallow_any_generics = true
 ignore_missing_imports = true
 no_implicit_optional = true
 show_error_codes = true
@@ -23,4 +64,6 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
-#no_implicit_reexport = false
+
+[tool.flake8]
+max-line-length = 160

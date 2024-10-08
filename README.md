@@ -8,6 +8,16 @@
 
 Image simulating tool for the next generation ESO instrument MAVIS. If you use MAVISIM please cite <a href="https://ui.adsabs.harvard.edu/abs/2021MNRAS.507.2192M/abstract" target="_blank"> Monty et al. 2021.</a>
 
+## Getting started
+For full documentation, see <a href="https://mavisim.readthedocs.io/en/latest/" target="_blank">mavisim.readthedocs.io</a>. To get started, install via pip:
+```bash
+pip install mavisim
+```
+and use the CLI:
+```bash
+mavisim --help
+```
+
 ## Current Version
 
 **1.1 - EtE PSF** - more accurate representation of the PSF, suitable for photometric and astrometric science cases
