@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from mavisim import AstromCalibSimAna, AstromCalibSimE2E, AstromCalibSimGeneric
+from mavisim.astromsim import AstromCalibSimAna, AstromCalibSimE2E, AstromCalibSimGeneric
 from astropy.io import ascii
 import numpy as np
 import pytest

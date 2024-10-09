@@ -1,8 +1,6 @@
 import numpy as np
 import math
 from scipy import interpolate
-from astropy.convolution import convolve_fft
-import poppy
 from mavisim import generate_image
 import astropy.io.fits as fits
 from tqdm import tqdm
@@ -549,6 +547,8 @@ class AstromCalibSimE2E(AstromCalibSimGeneric):
         Returns:
             numpy.ndarray: 2d array of the pinhole image
         """
+        import poppy
+        from astropy.convolution import convolve_fft
         # Pinhole Representation, fourier transform the pinhole directly
         pin_ap = (self._pin_size * self._mask_scale) * self._pinhole_os / self._fine_cam_samp
         output_size = self._pinhole_support_width

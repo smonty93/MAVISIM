@@ -6,15 +6,7 @@
 #
 # ----------------------------------------------------------------------------
 
-# Imports
-# Standard
-import numpy as np
-# Astropy
-from astropy.table import Table, Column
-from astropy import units as u
-# Scipy
-from scipy import interpolate
-
+# imports moved into functions to speed up mavisim import time
 
 def input_coo(input_par, source):
     """ Take input parameters and parse them as an astropy table for comparison with DAOphot.
@@ -27,6 +19,8 @@ def input_coo(input_par, source):
             trimmed_cat = an astropy table containing the TRUE input positions (static distortion,
             sub-pixel positioning and proper motion taken into account) and additional information necessary to compare with the DAOPhot output.
     """
+    from astropy.table import Table, Column
+    import numpy as np
     # Note we need to take two different coordinate conventions into account here, the convention of the CCD (x -> y) and the convention
     # of DAOPhot (starts at position 1, 1)
 
@@ -79,6 +73,7 @@ def add_all_noise(input_par, image, exp_time):
     Returns:
         image_adu (`np.ndarray`): final image + noise in ADU
     """
+    import numpy as np
 
     # Create the true image by randomly sampling Poissons with expectation intervals = N* + Nsky
     # Add the readnoise on top by randomly sampling Gaussians with a sigma = readnoise
@@ -138,7 +133,7 @@ def add_constant_sky_pixel(input_par, exp_time):
     Returns:
             sky_value (`float`): a global sky value in photons to add to every pixel
     """
-
+    from astropy import units as u
     square_arcsec_pervoxel = (input_par.ccd_sampling**2) * u.arcsec**2
 
     # Assuming the surface brightness is passed in as mag/arcsec^2 do the following:
@@ -161,6 +156,8 @@ def make_static_dist_map(input_par):
         dist_x_func_degmm:
         dist_y_func_degmm:
     """
+    from scipy import interpolate
+    import numpy as np
     # Field_y(deg) Hx Hy  Predicted_x(mm)  Predicted_y(mm)  Real_x(mm)  Real_y(mm)
 
     field_x = input_par.static_distort["Field_x(deg)"]
