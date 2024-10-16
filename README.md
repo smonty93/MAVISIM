@@ -17,6 +17,27 @@ and use the CLI:
 ```bash
 mavisim --help
 ```
+which should output something like:
+```
+usage: mavisim [-h] [-o OUTPUT] [-d DISTS] [--static STATIC] [--header HEADER] field psfs
+
+mavis image simulator
+
+positional arguments:
+  field                 file containing source field to simulate
+  psfs                  specify PSFs fits file on disk to use in simulation
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        specify name for output fits file
+  -d DISTS, --dists DISTS
+                        specify distortion file on disk to pre-distort sources with
+  --static STATIC, -s STATIC
+                        use only 1 psf (not field varying), at the given psf fits hdu index
+  --header HEADER       dict to be parsed as header for saved fits file
+
+```
 
 ## Current Version
 
