@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mavisim"
-version = "1.1.18"
+version = "1.1.19"
 authors = [
     {name = "Stephanie Monty", email = "stephanie.monty@anu.edu.au"},
     {name = "Jesse Cranney", email = "jesse.cranney@anu.edu.au"},
@@ -41,7 +41,7 @@ testing = [
 ]
 
 [project.scripts]
-mavisim = "mavisim.__main__:__name__"
+mavisim = "mavisim.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/smonty93/mavisim"
