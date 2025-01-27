@@ -53,8 +53,8 @@ def read_source(filename: str) -> Source:
 
     # create clean source data
     table = [line.split() for line in lines if len(line) > 0]
-    xx = np.r_[[float(line[3]) for line in table]]
-    yy = np.r_[[float(line[5]) for line in table]]
+    xx = np.r_[[float(line[3])+float(line[4]) for line in table]]
+    yy = np.r_[[float(line[5])+float(line[6]) for line in table]]
     flux = np.r_[[float(line[7]) for line in table]]
     nstars = xx.shape[0]
 
